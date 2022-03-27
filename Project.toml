@@ -1,0 +1,7 @@
+name = "QuantumComputer"
+uuid = "519c141d-2c40-4868-b3da-f583aca0bf2c"
+authors = ["Jason Colburne <j.colburne@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
