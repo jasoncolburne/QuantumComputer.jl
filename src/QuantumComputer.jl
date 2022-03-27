@@ -232,7 +232,7 @@ end
 
 # way faster for a unitary matrix than inv()
 function gate_invert(gate::Gate)
-  Gate(Array(conj(gate.matrix)'))
+  Gate(Array(gate.matrix'))
 end
 
 struct Measurement
