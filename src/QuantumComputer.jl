@@ -238,15 +238,17 @@ end
 struct Measurement
   qubits_to_measure::Array{Int64, 1}
   bits_to_output::Array{Int64, 1}
+  sample_size::Int64
+  samples::Array{Int64, 1}
 
-  function Measurement(qubits_to_measure::Array{Int64, 1}, bits_to_output::Array{Int64, 1})
+  function Measurement(bits_to_output::Array{Int64, 1}, qubits_to_measure::Array{Int64, 1}, sample_size::Int64 = 1024)
     length(qubits_to_measure) == length(bits_to_output) || throw(DomainError(length(bits_to_output), "tuples must have same number of unique elements"))
     qubits_to_measure = unique(qubits_to_measure)
     length(qubits_to_measure) == length(bits_to_output) || throw(DomainError(length(bits_to_output), "tuples must have same number of unique elements"))
     bits_to_output = unique(bits_to_output)
     length(qubits_to_measure) == length(bits_to_output) || throw(DomainError(length(bits_to_output), "tuples must have same number of unique elements"))
 
-    new(qubits_to_measure, bits_to_output)
+    new(qubits_to_measure, bits_to_output, sample_size, Array{Int64}(undef, sample_size))
   end
 end
 
@@ -258,22 +260,25 @@ function measure_superposition(superposition::Superposition, classical_register:
   for value in 0:(length(superposition.state) - 1)
     for i in 1:measurement_qubit_count
       qubit_to_measure = measurement.qubits_to_measure[i]
-      power_of_two = register_qubit_count - qubit_to_measure
-      if 2^power_of_two & value != 0
+      exponent = register_qubit_count - qubit_to_measure
+      if 2^exponent & value != 0
         probability_of_ones[i] += abs(superposition.state[value + 1] ^ 2)
       end
     end
   end
 
-  for i in 1:measurement_qubit_count
-    bit_to_output = measurement.bits_to_output[i]
+  for j in 1:measurement.sample_size
+    for i in 1:measurement_qubit_count
+      bit_to_output = measurement.bits_to_output[i]
 
-    mask::Int64 = 2^(classical_register.width - bit_to_output)
-    if probability_of_ones[i] >= 1 // 2
-      classical_register.value |= mask
-    else
-      classical_register.value &= ~mask
+      mask::Int64 = 2^(classical_register.width - bit_to_output)
+      if probability_of_ones[i] >= rand()
+        classical_register.value |= mask
+      else
+        classical_register.value &= ~mask
+      end
     end
+    measurement.samples[j] = classical_register.value
   end
 end
 
@@ -309,6 +314,69 @@ function apply_circuit_to_superposition!(superposition::Superposition, circuit::
       superposition.state = component.matrix * superposition.state
     end
   end
+end
+
+module Circuits
+
+using LinearAlgebra
+using ..QuantumComputer
+
+function constant_adder(n::Int64, qubit_count::Int64)
+  0 <= n < 2^qubit_count || throw(DomainError(n, ""))
+
+  circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+  qft::QuantumComputer.Gate = QuantumComputer.gate_fourier_transform(qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  for i::Int64 in qubit_count:-1:1
+    for k::Int64 in 1:i
+      if (1 << (i - k)) & n != 0
+        gate::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_p(pi / 2^(k - 1)), i, qubit_count)
+        QuantumComputer.add_gate_to_circuit!(circuit, gate)
+      end
+    end
+  end
+  inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_invert(qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+
+  circuit
+end
+
+function period_finding_for_11x_mod_15()
+  qubit_count = 5
+
+  circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+  h_matrix = QuantumComputer.gate_h.matrix
+  gate_h::QuantumComputer.Gate = QuantumComputer.Gate(kron(((1.0+0.0im)*I)(4), kron(h_matrix, kron(h_matrix, h_matrix))))
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
+  gate_cx::QuantumComputer.Gate = QuantumComputer.gate_cx(3, 4, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  gate_cx = QuantumComputer.gate_cx(3, 5, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  gate_h = QuantumComputer.gate_extension(QuantumComputer.gate_h, 4, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
+  gate_cp = QuantumComputer.gate_control(QuantumComputer.gate_p(pi/2), [4], 5, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cp)
+  gate_h = QuantumComputer.gate_extension(QuantumComputer.gate_h, 5, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
+
+  # uncompute ancilla
+  gate_cx = QuantumComputer.gate_cx(3, 2, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  gate_cx = QuantumComputer.gate_cx(3, 1, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  # done uncomputing
+
+  gate_cp = QuantumComputer.gate_control(QuantumComputer.gate_p(pi/4), [4], 3, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cp)
+  gate_cp = QuantumComputer.gate_control(QuantumComputer.gate_p(pi/2), [5], 3, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cp)
+
+  circuit
+end
+
+function period_finding(a::Int64, n::Int64)
+end
+
 end
 
 end # module

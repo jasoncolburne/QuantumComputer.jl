@@ -1,5 +1,6 @@
 import QuantumComputer
 using Test
+using DataStructures
 
 @testset "Register" begin
   register = QuantumComputer.Register(1)
@@ -153,4 +154,51 @@ end
   qubits = [0 1; 0 1]
   state = QuantumComputer.qubit_tensor_product(qubits)
   @test gate.matrix * state ≈ [0.5, -0.5im, -0.5, 0.5im] atol=0.000000000000001
+end
+
+function test_constant_adder(initial_value, constant, qubit_count)
+  register = QuantumComputer.Register(qubit_count, initial_value)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count)
+  superposition = QuantumComputer.Superposition(register.qubits)
+  adder = QuantumComputer.Circuits.constant_adder(constant, qubit_count)
+  measurement = QuantumComputer.Measurement(Array(1:qubit_count), Array(1:qubit_count))
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, adder)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  classical_register.value == (initial_value + constant) % 2^qubit_count
+end
+
+@testset "constant_adder" begin
+  @test test_constant_adder(0, 3, 2)
+  @test test_constant_adder(1, 1, 2)
+  @test test_constant_adder(0, 63, 6)
+  @test test_constant_adder(31, 31, 6)
+end
+
+@testset "11^x mod 13 period finder" begin
+  qubit_count = 5
+  bit_count = 3
+  sample_size = 256
+
+  register = QuantumComputer.Register(qubit_count)
+  classical_register = QuantumComputer.ClassicalRegister(bit_count)
+  superposition = QuantumComputer.Superposition(register.qubits)
+  period_finder = QuantumComputer.Circuits.period_finding_for_11x_mod_15()
+  measurement = QuantumComputer.Measurement([1, 2, 3], [3, 4, 5], sample_size)
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, period_finder)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  # this circuit doesn't find the exact period, but instead a multiple.
+  # here we test that over 256 samples, at least 120 resulted in the value '100'
+  # since it's random, and there is an equal probability of 0 occuring, we must
+  # test using a method like this
+  @test counter(measurement.samples)[4] > sample_size / 2 - 8
 end
