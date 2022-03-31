@@ -1,6 +1,7 @@
 module QuantumComputer
 
 using LinearAlgebra
+using StatsBase
 
 function qubit_tensor_product_thread(next_product::Array{Complex{Float64}, 1}, next_basis::Array{Complex{Float64}, 1}, product::Array{Complex{Float64}, 1}, product_size::Int64, thread_number::Int64, thread_count::Int64)
   width::Int64, padded_count::Int64 = divrem(product_size, thread_count)
@@ -252,6 +253,17 @@ struct Measurement
   end
 end
 
+struct HybridComponent
+  execute
+  arguments::Array
+
+  # executor should be a function with the signature
+  # (superposition::QuantumComputer.Superposition, classical_register::QuantumComputer.ClassicalRegister, arguments...)
+  function HybridComponent(executor, arguments)
+    new(executor, arguments)
+  end
+end
+
 function measure_superposition(superposition::Superposition, classical_register::ClassicalRegister, measurement::Measurement)
   measurement_qubit_count::Int64 = length(measurement.qubits_to_measure)
   register_qubit_count::Int64 = log2(length(superposition.state))
@@ -280,6 +292,20 @@ function measure_superposition(superposition::Superposition, classical_register:
     end
     measurement.samples[j] = classical_register.value
   end
+
+  counts = countmap(measurement.samples)
+  max_value = first(counts)[1]
+  max_count = first(counts)[1]
+  for (value, count) in counts
+    if count > max_count
+      max_value = value
+      max_count = count
+    end
+  end
+
+  classical_register.value = max_value
+
+  # quantum register should collapse
 end
 
 struct Circuit
@@ -302,6 +328,10 @@ function add_subcircuit_to_circuit!(circuit::Circuit, subcircuit::Circuit)
   push!(circuit.components, subcircuit)
 end
 
+function add_hybrid_component_to_circuit!(circuit::Circuit, component::HybridComponent)
+  push!(circuit.components, component)
+end
+
 function apply_circuit_to_superposition!(superposition::Superposition, circuit::Circuit, classical_register::ClassicalRegister = undef)
   for component in circuit.components
     if typeof(component) == Circuit
@@ -310,6 +340,8 @@ function apply_circuit_to_superposition!(superposition::Superposition, circuit::
       apply_circuit_to_superposition!(superposition, component, classical_register)
     elseif typeof(component) == Measurement
       measure_superposition(superposition, classical_register, component)
+    elseif typeof(component) == HybridComponent
+      component.execute(superposition, classical_register, component.arguments...)
     else
       superposition.state = component.matrix * superposition.state
     end
@@ -374,9 +406,6 @@ function period_finding_for_11x_mod_15()
   circuit
 end
 
-function period_finding(a::Int64, n::Int64)
-end
+end # module Circuits
 
-end
-
-end # module
+end # module QuantumComputer
