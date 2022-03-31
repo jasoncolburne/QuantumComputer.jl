@@ -282,8 +282,7 @@ function measure_superposition(superposition::Superposition, classical_register:
   for j in 1:measurement.sample_size
     for i in 1:measurement_qubit_count
       bit_to_output = measurement.bits_to_output[i]
-
-      mask::Int64 = 2^(classical_register.width - bit_to_output)
+      mask = 2^(classical_register.width - bit_to_output)
       if probability_of_ones[i] >= rand()
         classical_register.value |= mask
       else
@@ -305,7 +304,27 @@ function measure_superposition(superposition::Superposition, classical_register:
 
   classical_register.value = max_value
 
-  # quantum register should collapse
+  # superposition should collapse here
+  for i in 1:measurement_qubit_count
+    bit_output = measurement.bits_to_output[i]
+    output_mask::Int64 = 2^(classical_register.width - bit_output)
+    bit_set = (classical_register.value & output_mask != 0)
+    for value::Int64 in 0:(length(superposition.state) - 1)
+      qubit_to_measure = measurement.qubits_to_measure[i]
+      input_mask::Int64 = 2^(register_qubit_count - qubit_to_measure)
+      if bit_set
+        if value & input_mask == 0
+          superposition.state[(value | input_mask) + 1] += superposition.state[value + 1]
+          superposition.state[value + 1] = 0
+        end
+      else
+        if value & input_mask != 0
+          superposition.state[(value & ~input_mask) + 1] += superposition.state[value + 1]
+          superposition.state[value + 1] = 0
+        end
+      end
+    end
+  end
 end
 
 struct Circuit
