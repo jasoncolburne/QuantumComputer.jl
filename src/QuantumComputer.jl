@@ -295,7 +295,7 @@ function measure_superposition(superposition::Superposition, classical_register:
 
   counts = countmap(measurement.samples)
   max_value = first(counts)[1]
-  max_count = first(counts)[1]
+  max_count = first(counts)[2]
   for (value, count) in counts
     if count > max_count
       max_value = value
