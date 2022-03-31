@@ -202,4 +202,5 @@ end
   # here we test that over 256 samples, at least 128 resulted in binary '100'.
   # success of measurement depends on the random seed above
   @test countmap(measurement.samples)[4] > sample_size / 2
+  @test classical_register.value == 4
 end
