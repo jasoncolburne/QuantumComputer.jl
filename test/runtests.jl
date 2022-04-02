@@ -203,4 +203,5 @@ end
   # success of measurement depends on the random seed above
   @test countmap(measurement.samples)[4] > sample_size / 2
   @test classical_register.value == 4
+  @test sum(map(x -> abs(x^2), superposition.state)) ≈ 1 atol=0.00000000001
 end
