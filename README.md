@@ -16,7 +16,7 @@
 using QuantumComputer
 ```
 
-a quantum computer simulator. built out of boredom and intrigue. if you are new to julia, be warned - array indices start at 1. throught this module, qubit index 1 is considered the most significant qubit. in typical circuit diagrams, it represents the top line.
+a quantum computer simulator. built out of boredom and intrigue. if you are new to julia, be warned - array indices start at 1. throughout this module, qubit index 1 is considered the most significant qubit. in typical circuit diagrams, it represents the top line.
 
 what this module can do:
 
