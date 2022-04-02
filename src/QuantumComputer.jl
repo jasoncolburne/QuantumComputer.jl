@@ -790,59 +790,6 @@ function period_finding_for_11x_mod_15()
   circuit
 end
 
-# function period_finding(a::Int64, n::Int64)
-#   function conditional_x(superposition::QuantumComputer.Superposition, classical_register::QuantumComputer.ClassicalRegister, bit_measured::Int64)
-#     # qubit_count::Int64 = undef
-#     if classical_register.value & 2^(bit_measured-1) != 0
-#       qubit_count = log2(length(superposition.state))
-#       superposition.state = QuantumComputer.gate_extension(QuantumComputer.gate_x, 1, qubit_count).matrix * superposition.state
-#     end
-#   end
-
-#   function partial_fourier_transform(superposition::QuantumComputer.Superposition, classical_register::QuantumComputer.ClassicalRegister, offset::Int64)
-#     qubit_count::Int64 = log2(length(superposition.state))
-
-#     gate_h::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_h, 1, qubit_count)
-#     superposition.state = gate_h.matrix * superposition.state
-
-#     for k in offset:-1:1
-#       if classical_register.value & 2^(qubit_count - k)
-#         gate_p::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_p(pi / (2 ^ (offset - k))), 1, qubit_count)
-#         superposition.state = gate_p.matrix * superposition.state
-#       end
-#     end
-#   end
-
-#   function modular_adder()
-#   end
-
-#   function modular_multiplier(k, n)
-
-#   end
-
-#   bit_count = ceil(log2(n))
-#   qubit_count = 2 * bit_count + 3
-#   circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
-
-#   gate_h::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_h, 1, qubit_count)
-#   QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
-
-#   for k in 1:(2 * bit_count)
-#     factor::Int64 = (a^(2^(k-1))) % n
-#     multiplier = modular_multiplier(factor, n)
-#     QuantumComputer.add_subcircuit_to_circuit!(circuit, multiplier)
-
-#     if k == 1
-#       QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
-#     else
-#       component = QuantumComputer.HybridComponent(partial_fourier_transform, [k])
-#       QuantumComputer.add_hybrid_component_to_circuit!(circuit, component)
-#     end
-
-#     measurement = QuantumComputer.Measurement([], [1])
-#   end
-# end
-
 end # module Circuits
 
 end # module QuantumComputer
