@@ -40,7 +40,7 @@ what this module cannot do:
 
   * properly collapse a superposition during measurement (the squaring/
 
-rooting when we sum the unrealized state into the realized state causes a loss of information) (need to sum in a more sophistocated way?)
+rooting when we sum the unrealized state into the realized state causes a loss of information) (need to sum in a more sophistocated way? is this possible?)
 
   * construct a gate from a circuit (planned, pretty simple to implement)
   * decompose a gate into a circuit of smaller gates (unplanned)
