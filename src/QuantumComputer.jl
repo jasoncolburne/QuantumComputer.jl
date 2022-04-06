@@ -547,7 +547,6 @@ function measure_superposition(superposition::Superposition, classical_register:
 
   classical_register.value = max_value
 
-  # superposition should collapse here - unsure if this is correct
   for i in 1:measurement_qubit_count
     bit_output = measurement.bits_to_output[i]
     output_mask::Int64 = 2^(classical_register.width - bit_output)
@@ -557,12 +556,28 @@ function measure_superposition(superposition::Superposition, classical_register:
       input_mask::Int64 = 2^(register_qubit_count - qubit_to_measure)
       if bit_set
         if value & input_mask == 0
-          superposition.state[(value | input_mask) + 1] = √(superposition.state[(value | input_mask) + 1]^2 + superposition.state[value + 1]^2)
+          index = (value | input_mask) + 1
+          if superposition.state[index] == 0
+            # do we need to worry about phase here?
+            superposition.state[index] = superposition.state[value + 1]
+          else
+            # the resulting phase ignores the component being zeroed out, is this correct?
+            scale = √(abs(superposition.state[index])^2 + abs(superposition.state[value + 1])^2) / abs(superposition.state[index])
+            superposition.state[index] *= scale
+          end
           superposition.state[value + 1] = 0
         end
       else
         if value & input_mask != 0
-          superposition.state[(value & ~input_mask) + 1] = √(superposition.state[(value & ~input_mask) + 1]^2 + superposition.state[value + 1]^2)
+          index = (value & ~input_mask) + 1
+          if superposition.state[index] == 0
+            # do we need to worry about phase here?
+            superposition.state[index] = superposition.state[value + 1]
+          else
+            # the resulting phase ignores the component being zeroed out, is this correct?
+            scale = √(abs(superposition.state[index])^2 + abs(superposition.state[value + 1])^2) / abs(superposition.state[index])
+            superposition.state[index] *= scale
+          end
           superposition.state[value + 1] = 0
         end
       end
