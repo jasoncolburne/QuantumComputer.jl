@@ -18,6 +18,8 @@ using QuantumComputer
 
 a quantum computer simulator. built out of boredom and intrigue. if you are new to julia, be warned - array indices start at 1. throughout this module, qubit index 1 is considered the most significant qubit. in typical circuit diagrams, it represents the top line.
 
+i am fully aware that i 'over-typed' this module. i am new to julia and was curious about performance differences but i assume the compiler will sort everything out in many of the cases i am being explicit.
+
 what this module can do:
 
   * create registers, superpositions, gates and circuits
