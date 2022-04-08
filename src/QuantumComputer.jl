@@ -414,7 +414,14 @@ function gate_cnx(control_qubits::Array{Int64}, qubit_index::Int64, qubit_count:
   gate_control(gate_x, control_qubits, qubit_index, qubit_count)
 end
 
-# this special function creates a controlled-n gate efficiently, by utilizing the top n qubits
+"""
+    gate_multi_control(gate, control_count, qubit_count)
+
+this special function creates a controlled-n gate efficiently, by utilizing the top n qubits
+
+# Arguments
+- `gate`
+"""
 function gate_multi_control(gate::Gate, control_count::Int64, qubit_count::Int64)
   gate_qubit_count::Int64 = gate.superposed_qubits_required
   gate_qubit_count + control_count == qubit_count || throw(DomainError(qubit_count, "incorrect qubit count for gate + controls"))
@@ -517,7 +524,7 @@ function measure_superposition(superposition::Superposition, classical_register:
       qubit_to_measure = measurement.qubits_to_measure[i]
       exponent = register_qubit_count - qubit_to_measure
       if 2^exponent & value != 0
-        probability_of_ones[i] += abs(superposition.state[value + 1] ^ 2)
+        probability_of_ones[i] += abs(superposition.state[value + 1])^2
       end
     end
   end
@@ -674,6 +681,30 @@ function add_subcircuit_to_circuit!(circuit::Circuit, subcircuit::Circuit)
   push!(circuit.components, subcircuit)
 end
 
+function circuit_convert_to_gate(circuit::Circuit)
+  gates = filter(component -> typeof(component) == Gate, circuit.components)
+  rank = size(gates[1].matrix, 1)
+
+  # initialize with identity
+  matrix = ((1.0 + 0.0im)*I)(rank)
+
+  for component in circuit.components
+    if typeof(component) == Circuit
+      # if we are recursing too deep our circuit is likely pretty poor
+      # so this is reasonable
+      matrix = circuit_convert_to_gate(component).matrix * matrix
+    elseif typeof(component) == Measurement
+      throw(DomainError(circuit, "cannot contain measurements when converting to gate"))
+    elseif typeof(component) == HybridComponent
+      throw(DomainError(circuit, "cannot contain hybrid components when converting to gate"))
+    else
+      matrix = component.matrix * matrix
+    end
+  end
+
+  Gate(matrix)
+end
+
 """
     apply_circuit_to_superposition!(superposition, circuit, classical_register)
 
@@ -739,19 +770,40 @@ using ..QuantumComputer
 """
     constant_adder(n, qubit_count)
 
-a quantum circuit that adds n to the superposition's value
+a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`)
 
 # Arguments:
 - `n`: the constant to add
-- `qubit_count`: the number of qubits in the superposition (the adder will
-also return the result modulo 2^qubit_count)
+- `qubit_count`: the number of qubits in the superposition
 """
 function constant_adder(n::Int64, qubit_count::Int64)
-  0 <= n < 2^qubit_count || throw(DomainError(n, ""))
+  0 <= n < 2^qubit_count || throw(DomainError(n, "must be less than 2^qubit_count"))
 
   circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
   qft::QuantumComputer.Gate = QuantumComputer.gate_fourier_transform(qubit_count)
   QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  subcircuit::QuantumComputer.Circuit = constant_adder_core(n, qubit_count)
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, subcircuit)
+  inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_invert(qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+
+  circuit
+end
+
+"""
+    constant_adder_core(n, qubit_count)
+
+a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`)
+without applying pre and post fourier transforms
+
+# Arguments:
+- `n`: the constant to add
+- `qubit_count`: the number of qubits in the superposition
+"""
+function constant_adder_core(n::Int64, qubit_count::Int64)
+  0 <= n < 2^qubit_count || throw(DomainError(n, "must be less than 2^qubit_count"))
+
+  circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
   for i::Int64 in qubit_count:-1:1
     for k::Int64 in 1:i
       if (1 << (i - k)) & n != 0
@@ -760,8 +812,67 @@ function constant_adder(n::Int64, qubit_count::Int64)
       end
     end
   end
-  inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_invert(qft)
+
+  circuit
+end
+
+"""
+    controlled_controlled_modular_adder(n, a, qubit_count)
+
+a quantum circuit that adds `a` to the superposition's value (`mod n`)
+
+# Arguments:
+- `n`: the modulus
+- `a`: the constant to add
+- `qubit_count`: the number of qubits in the superposition. to figure
+out how many qubits are required, add `4` to the number of qubits required
+to store `n`
+"""
+function controlled_controlled_modular_adder(n::Int64, a::Int64)
+  qubit_count::Int64 = ceil(log2(n)) + 4
+
+  circuit_add_a::QuantumComputer.Circuit = constant_adder_core(a, qubit_count - 3)
+  gate_add_a::QuantumComputer.Gate = QuantumComputer.circuit_convert_to_gate(circuit_add_a)
+  gate_subtract_a::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_add_a)
+
+  cc_add_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_add_a, 2, qubit_count - 1)
+  cc_subtract_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_subtract_a, 2, qubit_count - 1)
+
+  add_a::QuantumComputer.Gate = QuantumComputer.gate_extension(cc_add_a, 2, qubit_count)
+  subtract_a::QuantumComputer.Gate = QuantumComputer.gate_extension(cc_subtract_a, 2, qubit_count)
+
+  circuit_add_n::QuantumComputer.Circuit = constant_adder_core(n, qubit_count - 3)
+  gate_add_n::QuantumComputer.Gate = QuantumComputer.circuit_convert_to_gate(circuit_add_n)
+  gate_subtract_n::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_add_n)
+  gate_extended_add_n::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_add_n, 3, qubit_count - 1)
+
+  add_n::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_extended_add_n, 1, qubit_count)
+  subtract_n::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_subtract_n, 4, qubit_count)
+
+  gate_qft::QuantumComputer.Gate = QuantumComputer.gate_fourier_transform(qubit_count - 3)
+  gate_inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_qft)
+
+  qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_qft, 4, qubit_count)
+  inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_inverse_qft, 4, qubit_count)
+
+  gate_cx::QuantumComputer.Gate = QuantumComputer.gate_cx(4, 1, qubit_count)
+  gate_x::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_x, 4, qubit_count)
+
+  circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+  QuantumComputer.add_gate_to_circuit!(circuit, add_a)
+  QuantumComputer.add_gate_to_circuit!(circuit, subtract_n)
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, add_n)
+  QuantumComputer.add_gate_to_circuit!(circuit, subtract_a)
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_x)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+  QuantumComputer.add_gate_to_circuit!(circuit, gate_x)
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  QuantumComputer.add_gate_to_circuit!(circuit, add_a)
 
   circuit
 end

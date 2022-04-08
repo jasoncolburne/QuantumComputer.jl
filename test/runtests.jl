@@ -122,27 +122,39 @@ end
 
 @testset "gate_multi_control" begin
   inner_gate = QuantumComputer.gate_swap(1, 3, 3)
-  gate = QuantumComputer.gate_multi_control(inner_gate, 1, 4)
+  gate = QuantumComputer.gate_multi_control(inner_gate, 2, 5)
 
-  qubits::Matrix{Complex{Float64}} = [1 0; 0 1; 1 0; 1 0]
+  qubits::Matrix{Complex{Float64}} = [1 0; 0 1; 0 1; 1 0; 1 0]
   state::Array{Complex{Float64}} = QuantumComputer.qubit_tensor_product(qubits)
   @test gate.matrix * state == state
 
-  qubits = [1 0; 1 0; 1 0; 0 1]
+  qubits = [0 1; 1 0; 1 0; 1 0; 0 1]
   state = QuantumComputer.qubit_tensor_product(qubits)
   @test gate.matrix * state == state
 
-  qubits = [0 1; 0 1; 1 0; 1 0]
+  qubits = [0 1; 0 1; 0 1; 1 0; 1 0]
   state = QuantumComputer.qubit_tensor_product(qubits)
-  expected_qubits::Matrix{Complex{Float64}} = [0 1; 1 0; 1 0; 0 1]
+  expected_qubits::Matrix{Complex{Float64}} = [0 1; 0 1; 1 0; 1 0; 0 1]
   expected_state::Array{Complex{Float64}} = QuantumComputer.qubit_tensor_product(expected_qubits)
   @test gate.matrix * state == expected_state
 
-  qubits = [0 1; 1 0; 0 1; 0 1]
+  qubits = [0 1; 0 1; 1 0; 0 1; 0 1]
   state = QuantumComputer.qubit_tensor_product(qubits)
-  expected_qubits = [0 1; 0 1; 0 1; 1 0]
+  expected_qubits = [0 1; 0 1; 0 1; 0 1; 1 0]
   expected_state = QuantumComputer.qubit_tensor_product(expected_qubits)
   @test gate.matrix * state == expected_state
+
+  extended_gate = QuantumComputer.gate_extension(gate, 2, 6)
+
+  qubits = [1 0; 0 1; 0 1; 1 0; 0 1; 0 1]
+  state = QuantumComputer.qubit_tensor_product(qubits)
+  expected_qubits = [1 0; 0 1; 0 1; 0 1; 0 1; 1 0]
+  expected_state = QuantumComputer.qubit_tensor_product(expected_qubits)
+  @test extended_gate.matrix * state == expected_state
+
+  qubits = [1 0; 0 1; 1 0; 1 0; 1 0; 0 1]
+  state = QuantumComputer.qubit_tensor_product(qubits)
+  @test extended_gate.matrix * state == state
 end
 
 @testset "gate_fourier_transform" begin
@@ -155,6 +167,27 @@ end
   qubits = [0 1; 0 1]
   state = QuantumComputer.qubit_tensor_product(qubits)
   @test gate.matrix * state ≈ [0.5, -0.5im, -0.5, 0.5im] atol=0.000000000000001
+end
+
+@testset "circuit_convert_to_gate" begin
+  initial_value = 13
+  constant = 12
+  qubit_count = 5
+
+  register = QuantumComputer.Register(qubit_count, initial_value)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count)
+  superposition = QuantumComputer.Superposition(register.qubits)
+  adder = QuantumComputer.Circuits.constant_adder(constant, qubit_count)
+  gate = QuantumComputer.circuit_convert_to_gate(adder)
+  measurement = QuantumComputer.Measurement(Array(1:qubit_count), Array(1:qubit_count))
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_gate_to_circuit!(circuit, gate)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value == (initial_value + constant) % 2^qubit_count
 end
 
 function test_constant_adder(initial_value, constant, qubit_count)
@@ -178,6 +211,59 @@ end
   @test test_constant_adder(1, 1, 2)
   @test test_constant_adder(0, 63, 6)
   @test test_constant_adder(31, 31, 6)
+end
+
+function test_constant_adder_core(initial_value, constant, qubit_count)
+  register = QuantumComputer.Register(qubit_count, initial_value)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count)
+  superposition = QuantumComputer.Superposition(register.qubits)
+  qft = QuantumComputer.gate_fourier_transform(qubit_count)
+  adder_core = QuantumComputer.Circuits.constant_adder_core(constant, qubit_count)
+  inverse_qft = QuantumComputer.gate_invert(qft)
+  measurement = QuantumComputer.Measurement(Array(1:qubit_count), Array(1:qubit_count))
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, adder_core)
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  classical_register.value == (initial_value + constant) % 2^qubit_count
+end
+
+@testset "constant_adder_core" begin
+  @test test_constant_adder_core(0, 3, 2)
+  @test test_constant_adder_core(1, 1, 2)
+  @test test_constant_adder_core(0, 63, 6)
+  @test test_constant_adder_core(31, 31, 6)
+end
+
+@testset "controlled_controlled_modular_adder" begin
+  a = 5
+  n = 9
+
+  modular_adder = QuantumComputer.Circuits.controlled_controlled_modular_adder(n, a)
+  gate_qft = QuantumComputer.gate_fourier_transform(5)
+  gate_inverse_qft = QuantumComputer.gate_invert(gate_qft)
+  qft = QuantumComputer.gate_extension(gate_qft, 4, 8)
+  inverse_qft = QuantumComputer.gate_extension(gate_inverse_qft, 4, 8)
+  measurement = QuantumComputer.Measurement(Array(5:8), Array(5:8))
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_adder)
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  qubits::Matrix{Complex{Float64}} = [1 0; 0 1; 0 1; 1 0; 1 0; 0 1; 1 0; 0 1;]
+  superposition = QuantumComputer.Superposition(qubits)
+  classical_register = QuantumComputer.ClassicalRegister(8)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value == 1
 end
 
 @testset "11^x mod 13 period finder" begin
