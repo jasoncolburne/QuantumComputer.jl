@@ -1,11 +1,7 @@
 """
     using QuantumComputer
 
-a quantum computer simulator. built out of boredom and intrigue.
-if you are new to julia, be warned - array indices start at 1.
-throughout this module, qubit index 1 is considered the most
-significant qubit. in typical circuit diagrams, it represents the
-top line.
+a quantum computer simulator. built out of boredom and intrigue. if you are new to julia, be warned - array indices start at 1. throughout this module, qubit index 1 is considered the most significant qubit. in typical circuit diagrams, it represents the top line.
 
 what this module can do:
 - create registers, superpositions, gates and circuits
@@ -13,10 +9,8 @@ what this module can do:
 - add gates to circuits
 - add measurements to circuits
 - add circuits to other circuits as subcircuits
-- add `HybridComponents` to a circuit, which are components where there
-is a classical interaction with the quantum portion of the simulator
-- measure arbitrary qubits from a superposition (collapse implementation
-will currently lose information for entangled and unmeasured qubits)
+- add `HybridComponents` to a circuit, which are components where there is a classical interaction with the quantum portion of the simulator
+- measure arbitrary qubits from a superposition
 - generate a variety of single- and multi-qubit static and dynamic gates
 - generate some basic circuits
 - construct a gate from a circuit
@@ -24,10 +18,8 @@ will currently lose information for entangled and unmeasured qubits)
 
 what this module cannot do:
 - decompose a gate into a circuit of smaller gates (planned, long term)
-- print a graphical representation of the circuit (planned, relatively
-simple but also tedious so not planned for near future)
-- use multiple registers in one circuit (right now you get one quantum
-and one classical)
+- print a graphical representation of the circuit (planned, relatively simple but also tedious so not planned for near future)
+- use multiple registers in one circuit (right now you get one quantum and one classical)
 - output bloch sphere animations of algorithm running (planned)
 
 # Example
@@ -114,9 +106,7 @@ end
     Superposition(qubits)
     Superposition(state)
 
-a superposition is a representation of the probabilities of all possible
-states of a vector of qubits, typically a register (but there is no hard
-requirement for a register as input in this simulator)
+a superposition is a representation of the probabilities of all possible states of a vector of qubits, typically a register (but there is no hard requirement for a register as input in this simulator)
 """
 mutable struct Superposition
   state::Array{Complex{Float64}, 1}
@@ -133,10 +123,7 @@ end
 """
     qubit_tensor_product(qubits)
 
-this custom function computes a tensor product on the n rows of
-a matrix of 2-column qubits. this function is threaded, and the
-core of the algorithm follows in the next function. this works by
-iteratively applying the tensor product qubit by qubit.
+this custom function computes a tensor product on the n rows of a matrix of 2-column qubits. this function is threaded, and the core of the algorithm follows in the next function. this works by iteratively applying the tensor product qubit by qubit.
 
 # Arguments
 - `qubits`: a matrix of qubits, in the same arrangement as a `Register`
@@ -168,12 +155,8 @@ end
 """
     qubit_tensor_product_thread(next_product, basis, product, product_size, thread_number, thread_count)
 
-the threaded portion from our qubit tensor product algorithm. this
-will compute a slice of the current tensor product expansion from the
-parent algorithm.
-
-this fills in a portion of `next_product` by computing a partial
-tensor product of `basis` and `product`.
+the threaded portion from our qubit tensor product algorithm. this will compute a slice of the current tensor product expansion from the parent algorithm.
+this fills in a portion of `next_product` by computing a partial tensor product of `basis` and `product`.
 
 # Arguments
 - `next_product`: the product (state) that is currently being computed
@@ -205,8 +188,7 @@ end
 """
     Gate(matrix)
 
-a gate operating on a state of size 2^n is really just a 2^n x 2^n unitary matrix.
-this can be added to a `Circuit`.
+a gate operating on a state of size 2^n is really just a 2^n x 2^n unitary matrix. this can be added to a `Circuit`.
 
 # Arguments
 - `matrix`: a complex unitary matrix of size 2^n, n a positive integer
@@ -261,15 +243,14 @@ gate_u(θ::Float64, ϕ::Float64, λ::Float64) = Gate([cos(θ/2) -sin(θ/2)*ℯ^(
 ###################
 
 """
-https://en.wikipedia.org/wiki/Quantum_logic_gate#Square_root_of_swap_gate
+[wikipedia](https://en.wikipedia.org/wiki/Quantum_logic_gate#Square_root_of_swap_gate)
 """
 gate_root_swap = Gate([1 0 0 0; 0 (1.0+im)/2 (1.0-im)/2 0; 0 (1.0-im)/2 (1.0+im)/2 0; 0 0 0 1])
 
 """
     gate_swap(qubit_a_index, qubit_b_index, qubit_count)
 
-https://quantumcomputing.stackexchange.com/questions/9181/swap-gate-on-2-qubits-in-3-entangled-qubit-system
-a gate that swaps two arbitrary qubits in a superposition
+a gate that swaps two arbitrary qubits in a superposition [explanation](https://quantumcomputing.stackexchange.com/questions/9181/swap-gate-on-2-qubits-in-3-entangled-qubit-system)
 
 # Arguments
 - `qubit_a_index`: the index of the first qubit to swap
@@ -306,8 +287,7 @@ end
 """
     ket_bra(i, j)
 
-check the stackexchange post on the previous function to understand
-what is happening here.
+check the stackexchange post on the previous function to understand what is happening here.
 
 # Arguments
 - `i`: first value
@@ -346,16 +326,13 @@ end
 """
     gate_control(gate, control_qubits, qubit_index, qubit_count)
 
-creates an n-controlled single qubit gate. acts on an arbitrary
-qubit in a superposition and is controlled by n arbitrary qubits.
+creates an n-controlled single qubit gate. acts on an arbitrary qubit in a superposition and is controlled by n arbitrary qubits.
 
 # Arguments
 - `gate`: the underlying single qubit gate
 - `control_qubits`: an array of integers selecting control qubits
-- `qubit_index`: an integer selecting the qubit to which the single-qubit
-gate is applied
-- `qubit_count`: the number of qubits in the superposition this gate will
-act on
+- `qubit_index`: an integer selecting the qubit to which the single-qubit gate is applied
+- `qubit_count`: the number of qubits in the superposition this gate will act on
 """
 function gate_control(gate::Gate, control_qubits::Array{Int64}, qubit_index::Int64, qubit_count::Int64)
   qubit_index in control_qubits && throw(DomainError((control_qubit, qubit_index), "control and target qubits must differ"))
@@ -435,8 +412,7 @@ end
 """
     gate_fourier_transform(qubit_count)
 
-the quantum fourier transform.
-https://en.wikipedia.org/wiki/Quantum_Fourier_transform
+the quantum fourier transform. [wikipedia](https://en.wikipedia.org/wiki/Quantum_Fourier_transform)
 
 # Arguments
 - `qubit_count`: the number of qubits the gate operates on
@@ -460,8 +436,7 @@ end
 """
     gate_invert(gate)
 
-inverts a unitary matrix quickly, taking advantage of the fact that the
-conjugate transpose is the inverse of a unitary matrix
+inverts a unitary matrix quickly, taking advantage of the fact that the conjugate transpose is the inverse of a unitary matrix
 
 # Arguments
 - `gate`: the gate to invert
@@ -473,10 +448,7 @@ end
 """
     Measurement(bits_to_output, qubits_to_measure, sample_size)
 
-creates a measurement component for incorporation in a `Circuit`.
-`bits_to_output` and `qubits_to_measure` must be equal in length and
-contain no duplicates. it is fine for there to be an intersection
-of the to arrays, as long as each array has unique values.
+creates a measurement component for incorporation in a `Circuit`. `bits_to_output` and `qubits_to_measure` must be equal in length and contain no duplicates. it is fine for there to be an intersection of the to arrays, as long as each array has unique values.
 
 # Arguments
 - `bits_to_output`: the bits to write in the classical output register.
@@ -504,8 +476,7 @@ end
 """
     measure_superposition(superposition, classical_register, measurement)
 
-i believe this function may not collapse things correctly, in that it may yield
-a subset of the results that a physical quantum computer would.
+measure some qubits and store the result in a classical register
 
 # Arguments
 - `superposition`: the superposition being measured
@@ -593,13 +564,10 @@ end
 """
     HybridComponent(executor, arguments)
 
-a component that can be added to a `Circuit` that is capable of
-controlling quantum gates and subcircuits with classical logic.
+a component that can be added to a `Circuit` that is capable of controlling quantum gates and subcircuits with classical logic.
 
 # Arguments
-- `executor`: a function that accepts circuit application arguments (see
-below for signature) and runs code that applies quantum `Gates` and `Circuits`
-intelligently
+- `executor`: a function that accepts circuit application arguments (see below for signature) and runs code that applies quantum `Gates` and `Circuits` intelligently
 - `arguments`: fixed arguments known at the time of `Circuit` composition
 """
 struct HybridComponent
@@ -616,8 +584,7 @@ end
 """
     Circuit()
 
-a quantum circuit. technically this is just an ordered collection of
-components.
+a quantum circuit. technically this is just an ordered collection of components.
 """
 struct Circuit
   components::Array{Union{Circuit, Gate, Measurement}, 1}
@@ -706,14 +673,12 @@ end
 """
     apply_circuit_to_superposition!(superposition, circuit, classical_register)
 
-applies the gates and measurements in a circuit to the superposition provided.
-a classical register is required for measurement outputs.
+applies the gates and measurements in a circuit to the superposition provided. a classical register is required for measurement outputs.
 
 # Arguments
 - `superposition`: the `Superposition` to operate on
 - `circuit`: the `Circuit` to apply
-- `classical_register`: a `ClassicalRegister` capable of holding all circuit
-measurement output bits
+- `classical_register`: a `ClassicalRegister` capable of holding all circuit measurement output bits
 """
 function apply_circuit_to_superposition!(superposition::Superposition, circuit::Circuit, classical_register::ClassicalRegister = undef)
   for component in circuit.components
@@ -791,8 +756,7 @@ end
 """
     constant_adder_core(n, qubit_count)
 
-a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`)
-without applying pre and post fourier transforms
+a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`) without applying pre and post fourier transforms
 
 # Arguments:
 - `n`: the constant to add
@@ -817,14 +781,12 @@ end
 """
     controlled_controlled_modular_adder(n, a, qubit_count)
 
-a quantum circuit that adds `a` to the superposition's value (`mod n`)
+a quantum circuit that adds `a` to the superposition's value (`mod n`). see the modular adder circuit in [this paper](https://arxiv.org/pdf/quant-ph/0205095.pdf)
 
 # Arguments:
 - `n`: the modulus
 - `a`: the constant to add
-- `qubit_count`: the number of qubits in the superposition. to figure
-out how many qubits are required, add `4` to the number of qubits required
-to store `n`
+- `qubit_count`: the number of qubits in the superposition. to figure out how many qubits are required, add `4` to the number of qubits required to store `n`
 """
 function controlled_controlled_modular_adder(n::Int64, a::Int64)
   qubit_count::Int64 = ceil(log2(n)) + 4
@@ -878,9 +840,7 @@ end
 """
     period_finding_for_11x_mod_15()
 
-a 5 qubit circuit that returns a value related to the period of
-f(x) = 11^x mod 15. this effectively allows implementation of Shor's
-algorithm for this specific case.
+a 5 qubit circuit that returns a value related to the period of f(x) = 11^x mod 15. this effectively allows implementation of Shor's algorithm for this specific case.
 """
 function period_finding_for_11x_mod_15()
   qubit_count = 5
