@@ -302,7 +302,7 @@ function ket_bra(i::Int64, j::Int64)::Matrix{Complex{Float64}}
 end
 
 """
-    gate_extension()
+    gate_extension(gate, qubit_index, qubit_count)
 
 a gate that acts on a subset of qubits by identifying a range of
 qubits in a superposition and applying a smaller gate to that range,
