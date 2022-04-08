@@ -257,7 +257,7 @@ end
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
   QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
 
-  qubits::Matrix{Complex{Float64}} = [1 0; 0 1; 0 1; 1 0; 1 0; 0 1; 1 0; 0 1;]
+  qubits::Matrix{Complex{Float64}} = [0 1; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1;]
   superposition = QuantumComputer.Superposition(qubits)
   classical_register = QuantumComputer.ClassicalRegister(8)
 

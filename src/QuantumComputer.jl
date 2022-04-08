@@ -796,18 +796,18 @@ function controlled_controlled_modular_adder(n::Int64, a::Int64)
   gate_add_a::QuantumComputer.Gate = QuantumComputer.circuit_convert_to_gate(circuit_add_a)
   gate_subtract_a::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_add_a)
 
-  cc_add_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_add_a, 2, qubit_count - 1)
-  cc_subtract_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_subtract_a, 2, qubit_count - 1)
+  add_a::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_add_a, 2, qubit_count - 2)
+  subtract_a::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_subtract_a, 2, qubit_count - 2)
 
-  add_a::QuantumComputer.Gate = QuantumComputer.gate_extension(cc_add_a, 2, qubit_count)
-  subtract_a::QuantumComputer.Gate = QuantumComputer.gate_extension(cc_subtract_a, 2, qubit_count)
+  cc_add_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(add_a, 2, qubit_count)
+  cc_subtract_a::QuantumComputer.Gate = QuantumComputer.gate_multi_control(subtract_a, 2, qubit_count)
 
   circuit_add_n::QuantumComputer.Circuit = constant_adder_core(n, qubit_count - 3)
   gate_add_n::QuantumComputer.Gate = QuantumComputer.circuit_convert_to_gate(circuit_add_n)
   gate_subtract_n::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_add_n)
-  gate_extended_add_n::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_add_n, 3, qubit_count - 1)
+  add_n::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_add_n, 1, qubit_count - 2)
 
-  add_n::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_extended_add_n, 1, qubit_count)
+  c_add_n::QuantumComputer.Gate = QuantumComputer.gate_extension(add_n, 3, qubit_count)
   subtract_n::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_subtract_n, 4, qubit_count)
 
   gate_qft::QuantumComputer.Gate = QuantumComputer.gate_fourier_transform(qubit_count - 3)
@@ -816,24 +816,24 @@ function controlled_controlled_modular_adder(n::Int64, a::Int64)
   qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_qft, 4, qubit_count)
   inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_inverse_qft, 4, qubit_count)
 
-  gate_cx::QuantumComputer.Gate = QuantumComputer.gate_cx(4, 1, qubit_count)
+  gate_cx::QuantumComputer.Gate = QuantumComputer.gate_cx(4, 3, qubit_count)
   gate_x::QuantumComputer.Gate = QuantumComputer.gate_extension(QuantumComputer.gate_x, 4, qubit_count)
 
   circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
 
-  QuantumComputer.add_gate_to_circuit!(circuit, add_a)
+  QuantumComputer.add_gate_to_circuit!(circuit, cc_add_a)
   QuantumComputer.add_gate_to_circuit!(circuit, subtract_n)
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
   QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
   QuantumComputer.add_gate_to_circuit!(circuit, qft)
-  QuantumComputer.add_gate_to_circuit!(circuit, add_n)
-  QuantumComputer.add_gate_to_circuit!(circuit, subtract_a)
+  QuantumComputer.add_gate_to_circuit!(circuit, c_add_n)
+  QuantumComputer.add_gate_to_circuit!(circuit, cc_subtract_a)
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
   QuantumComputer.add_gate_to_circuit!(circuit, gate_x)
   QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
   QuantumComputer.add_gate_to_circuit!(circuit, gate_x)
   QuantumComputer.add_gate_to_circuit!(circuit, qft)
-  QuantumComputer.add_gate_to_circuit!(circuit, add_a)
+  QuantumComputer.add_gate_to_circuit!(circuit, cc_add_a)
 
   circuit
 end
