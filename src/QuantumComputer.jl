@@ -19,18 +19,16 @@ is a classical interaction with the quantum portion of the simulator
 will currently lose information for entangled and unmeasured qubits)
 - generate a variety of single- and multi-qubit static and dynamic gates
 - generate some basic circuits
+- construct a gate from a circuit
+- retain phase of state of unmeasured qubits (unsure if this is a proper collapse)
 
 what this module cannot do:
-- properly collapse a superposition during measurement (the squaring/
-rooting when we sum the unrealized state into the realized state causes
-a loss of information) (need to sum in a more sophistocated way?
-is this possible?)
-- construct a gate from a circuit (planned, pretty simple to implement)
-- decompose a gate into a circuit of smaller gates (unplanned)
+- decompose a gate into a circuit of smaller gates (planned, long term)
 - print a graphical representation of the circuit (planned, relatively
 simple but also tedious so not planned for near future)
 - use multiple registers in one circuit (right now you get one quantum
 and one classical)
+- output bloch sphere animations of algorithm running (planned)
 
 # Example
 ```julia
