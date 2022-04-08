@@ -451,8 +451,7 @@ end
 creates a measurement component for incorporation in a `Circuit`. `bits_to_output` and `qubits_to_measure` must be equal in length and contain no duplicates. it is fine for there to be an intersection of the to arrays, as long as each array has unique values.
 
 # Arguments
-- `bits_to_output`: the bits to write in the classical output register.
-order must correspond to `qubits_to_measure` order.
+- `bits_to_output`: the bits to write in the classical output register. order must correspond to `qubits_to_measure` order.
 - `qubits_to_measure`: the qubits to measure, in the order of measurement.
 - `sample_size`: the number of samples to perform when measuring
 """
