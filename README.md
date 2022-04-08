@@ -65,7 +65,7 @@ println(classical_register.value)
 ```
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L1-L48' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L1-L48' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_root_swap' href='#Main.QuantumComputer.gate_root_swap'>#</a>
 **`Main.QuantumComputer.gate_root_swap`** &mdash; *Constant*.
@@ -75,7 +75,7 @@ println(classical_register.value)
 [wikipedia](https://en.wikipedia.org/wiki/Quantum_logic_gate#Square_root_of_swap_gate)
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L245-L247' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L245-L247' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.Circuit' href='#Main.QuantumComputer.Circuit'>#</a>
 **`Main.QuantumComputer.Circuit`** &mdash; *Type*.
@@ -89,7 +89,7 @@ Circuit()
 a quantum circuit. technically this is just an ordered collection of components.
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L584-L588' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L583-L587' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.ClassicalRegister' href='#Main.QuantumComputer.ClassicalRegister'>#</a>
 **`Main.QuantumComputer.ClassicalRegister`** &mdash; *Type*.
@@ -108,7 +108,7 @@ a classical register is used to store the results of a measurement
   * `value`: the intitial value of the register (optional, default = 0)
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L57-L65' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L57-L65' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.Gate' href='#Main.QuantumComputer.Gate'>#</a>
 **`Main.QuantumComputer.Gate`** &mdash; *Type*.
@@ -126,7 +126,7 @@ a gate operating on a state of size 2^n is really just a 2^n x 2^n unitary matri
   * `matrix`: a complex unitary matrix of size 2^n, n a positive integer
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L188-L195' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L188-L195' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.HybridComponent' href='#Main.QuantumComputer.HybridComponent'>#</a>
 **`Main.QuantumComputer.HybridComponent`** &mdash; *Type*.
@@ -145,7 +145,7 @@ a component that can be added to a `Circuit` that is capable of controlling quan
   * `arguments`: fixed arguments known at the time of `Circuit` composition
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L564-L572' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L563-L571' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.Measurement' href='#Main.QuantumComputer.Measurement'>#</a>
 **`Main.QuantumComputer.Measurement`** &mdash; *Type*.
@@ -160,15 +160,12 @@ creates a measurement component for incorporation in a `Circuit`. `bits_to_outpu
 
 **Arguments**
 
-  * `bits_to_output`: the bits to write in the classical output register.
-
-order must correspond to `qubits_to_measure` order.
-
+  * `bits_to_output`: the bits to write in the classical output register. order must correspond to `qubits_to_measure` order.
   * `qubits_to_measure`: the qubits to measure, in the order of measurement.
   * `sample_size`: the number of samples to perform when measuring
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L448-L458' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L448-L457' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.Register' href='#Main.QuantumComputer.Register'>#</a>
 **`Main.QuantumComputer.Register`** &mdash; *Type*.
@@ -187,7 +184,7 @@ a quantum register represents a vector of qubits
   * `value`: the initial value of the qubits (optional, default = 0)
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L77-L85' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L77-L85' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.Superposition' href='#Main.QuantumComputer.Superposition'>#</a>
 **`Main.QuantumComputer.Superposition`** &mdash; *Type*.
@@ -202,7 +199,7 @@ Superposition(state)
 a superposition is a representation of the probabilities of all possible states of a vector of qubits, typically a register (but there is no hard requirement for a register as input in this simulator)
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L105-L110' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L105-L110' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.add_gate_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Gate}' href='#Main.QuantumComputer.add_gate_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Gate}'>#</a>
 **`Main.QuantumComputer.add_gate_to_circuit!`** &mdash; *Method*.
@@ -221,7 +218,7 @@ adds a `Gate` to a `Circuit`.
   * `gate`: the `Gate`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L597-L605' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L596-L604' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.add_hybrid_component_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.HybridComponent}' href='#Main.QuantumComputer.add_hybrid_component_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.HybridComponent}'>#</a>
 **`Main.QuantumComputer.add_hybrid_component_to_circuit!`** &mdash; *Method*.
@@ -240,7 +237,7 @@ adds a `HybridComponent` to a `Circuit`.
   * `component`: the `HybridComponent`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L623-L631' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L622-L630' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.add_measurement_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Measurement}' href='#Main.QuantumComputer.add_measurement_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Measurement}'>#</a>
 **`Main.QuantumComputer.add_measurement_to_circuit!`** &mdash; *Method*.
@@ -259,7 +256,7 @@ adds a `Measurement` to a `Circuit`.
   * `measurement`: the `Measurement`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L610-L618' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L609-L617' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.add_subcircuit_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Circuit}' href='#Main.QuantumComputer.add_subcircuit_to_circuit!-Tuple{Main.QuantumComputer.Circuit,Main.QuantumComputer.Circuit}'>#</a>
 **`Main.QuantumComputer.add_subcircuit_to_circuit!`** &mdash; *Method*.
@@ -278,7 +275,7 @@ adds a `Circuit` to a another `Circuit` as a component.
   * `subcircuit`: the child `Circuit`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L636-L644' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L635-L643' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.apply_circuit_to_superposition!' href='#Main.QuantumComputer.apply_circuit_to_superposition!'>#</a>
 **`Main.QuantumComputer.apply_circuit_to_superposition!`** &mdash; *Function*.
@@ -298,7 +295,7 @@ applies the gates and measurements in a circuit to the superposition provided. a
   * `classical_register`: a `ClassicalRegister` capable of holding all circuit measurement output bits
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L673-L682' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L672-L681' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_cnx-Tuple{Array{Int64,N} where N,Int64,Int64}' href='#Main.QuantumComputer.gate_cnx-Tuple{Array{Int64,N} where N,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_cnx`** &mdash; *Method*.
@@ -318,7 +315,7 @@ n-controlled pauli x gate.
   * `qubit_count`: the total number of qubits the resultant gate acts on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L378-L387' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L378-L387' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_control-Tuple{Main.QuantumComputer.Gate,Array{Int64,N} where N,Int64,Int64}' href='#Main.QuantumComputer.gate_control-Tuple{Main.QuantumComputer.Gate,Array{Int64,N} where N,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_control`** &mdash; *Method*.
@@ -339,7 +336,7 @@ creates an n-controlled single qubit gate. acts on an arbitrary qubit in a super
   * `qubit_count`: the number of qubits in the superposition this gate will act on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L326-L336' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L326-L336' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_cx-Tuple{Int64,Int64,Int64}' href='#Main.QuantumComputer.gate_cx-Tuple{Int64,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_cx`** &mdash; *Method*.
@@ -359,7 +356,7 @@ controlled pauli x gate.
   * `qubit_count`: the total number of qubits the resultant gate acts on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L364-L373' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L364-L373' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_extension-Tuple{Main.QuantumComputer.Gate,Int64,Int64}' href='#Main.QuantumComputer.gate_extension-Tuple{Main.QuantumComputer.Gate,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_extension`** &mdash; *Method*.
@@ -379,7 +376,7 @@ a gate that acts on a subset of qubits by identifying a range of qubits in a sup
   * `qubit_count`: the number of qubits in the superposition this gate will act on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L304-L317' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L304-L317' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_fourier_transform-Tuple{Int64}' href='#Main.QuantumComputer.gate_fourier_transform-Tuple{Int64}'>#</a>
 **`Main.QuantumComputer.gate_fourier_transform`** &mdash; *Method*.
@@ -397,7 +394,7 @@ the quantum fourier transform. [wikipedia](https://en.wikipedia.org/wiki/Quantum
   * `qubit_count`: the number of qubits the gate operates on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L412-L419' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L412-L419' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_invert-Tuple{Main.QuantumComputer.Gate}' href='#Main.QuantumComputer.gate_invert-Tuple{Main.QuantumComputer.Gate}'>#</a>
 **`Main.QuantumComputer.gate_invert`** &mdash; *Method*.
@@ -415,7 +412,7 @@ inverts a unitary matrix quickly, taking advantage of the fact that the conjugat
   * `gate`: the gate to invert
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L436-L443' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L436-L443' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_multi_control-Tuple{Main.QuantumComputer.Gate,Int64,Int64}' href='#Main.QuantumComputer.gate_multi_control-Tuple{Main.QuantumComputer.Gate,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_multi_control`** &mdash; *Method*.
@@ -433,7 +430,7 @@ this special function creates a controlled-n gate efficiently, by utilizing the 
   * `gate`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L392-L399' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L392-L399' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.gate_swap-Tuple{Int64,Int64,Int64}' href='#Main.QuantumComputer.gate_swap-Tuple{Int64,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.gate_swap`** &mdash; *Method*.
@@ -455,7 +452,7 @@ a gate that swaps two arbitrary qubits in a superposition [explanation](https://
 this gate will operate on
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L250-L260' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L250-L260' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.ket_bra-Tuple{Int64,Int64}' href='#Main.QuantumComputer.ket_bra-Tuple{Int64,Int64}'>#</a>
 **`Main.QuantumComputer.ket_bra`** &mdash; *Method*.
@@ -474,7 +471,7 @@ check the stackexchange post on the previous function to understand what is happ
   * `j`: second value
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L287-L295' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L287-L295' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.measure_superposition-Tuple{Main.QuantumComputer.Superposition,Main.QuantumComputer.ClassicalRegister,Main.QuantumComputer.Measurement}' href='#Main.QuantumComputer.measure_superposition-Tuple{Main.QuantumComputer.Superposition,Main.QuantumComputer.ClassicalRegister,Main.QuantumComputer.Measurement}'>#</a>
 **`Main.QuantumComputer.measure_superposition`** &mdash; *Method*.
@@ -494,7 +491,7 @@ measure some qubits and store the result in a classical register
   * `measurement`: details of the measurement
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L476-L485' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L475-L484' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.qubit_tensor_product-Tuple{Array{Complex{Float64},2}}' href='#Main.QuantumComputer.qubit_tensor_product-Tuple{Array{Complex{Float64},2}}'>#</a>
 **`Main.QuantumComputer.qubit_tensor_product`** &mdash; *Method*.
@@ -512,7 +509,7 @@ this custom function computes a tensor product on the n rows of a matrix of 2-co
   * `qubits`: a matrix of qubits, in the same arrangement as a `Register`
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L123-L130' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L123-L130' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.qubit_tensor_product_thread-Tuple{Array{Complex{Float64},1},Array{Complex{Float64},1},Array{Complex{Float64},1},Int64,Int64,Int64}' href='#Main.QuantumComputer.qubit_tensor_product_thread-Tuple{Array{Complex{Float64},1},Array{Complex{Float64},1},Array{Complex{Float64},1},Int64,Int64,Int64}'>#</a>
 **`Main.QuantumComputer.qubit_tensor_product_thread`** &mdash; *Method*.
@@ -535,7 +532,7 @@ the threaded portion from our qubit tensor product algorithm. this will compute 
   * `thread_count`: the total number of threads
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L155-L168' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L155-L168' class='documenter-source'>source</a><br>
 
 <a id='Main.QuantumComputer.qubits_operated_on_by_unitary_matrix-Tuple{Array{T,2} where T}' href='#Main.QuantumComputer.qubits_operated_on_by_unitary_matrix-Tuple{Array{T,2} where T}'>#</a>
 **`Main.QuantumComputer.qubits_operated_on_by_unitary_matrix`** &mdash; *Method*.
@@ -553,5 +550,5 @@ a helper function to compute the number of qubits a gate operates on
   * `matrix`: a unitary matrix
 
 
-<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/4e66e3b285dd5f3f06d69cefda7caecc7626b695/src/QuantumComputer.jl#L205-L212' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jasoncolburne/QuantumComputer.jl/blob/43dd5ad7d56bed57721c48b5e9fefa68818a5962/src/QuantumComputer.jl#L205-L212' class='documenter-source'>source</a><br>
 
