@@ -787,7 +787,6 @@ a quantum circuit that adds `a` to the superposition's value (`mod n`). see the 
 # Arguments:
 - `n`: the modulus
 - `a`: the constant to add
-- `qubit_count`: the number of qubits in the superposition. to figure out how many qubits are required, add `4` to the number of qubits required to store `n`
 """
 function controlled_controlled_modular_adder(n::Int64, a::Int64)
   qubit_count::Int64 = ceil(log2(n)) + 4
@@ -834,6 +833,47 @@ function controlled_controlled_modular_adder(n::Int64, a::Int64)
   QuantumComputer.add_gate_to_circuit!(circuit, gate_x)
   QuantumComputer.add_gate_to_circuit!(circuit, qft)
   QuantumComputer.add_gate_to_circuit!(circuit, cc_add_a)
+
+  circuit
+end
+
+"""
+    controlled_modular_multiplier(n, a)
+
+see the modular multiplier circuit in [this paper](https://arxiv.org/pdf/quant-ph/0205095.pdf).
+
+# Arguments:
+- `n`: the modulus
+- `a`: the constant to add
+"""
+function controlled_modular_multiplier(n::Int64, a::Int64)
+  n_qubit_count::Int64 = ceil(log2(n))
+  qubit_count::Int64 = 2 * n_qubit_count + 3
+
+  circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+  gate_qft::QuantumComputer.Gate = QuantumComputer.gate_fourier_transform(n_qubit_count + 1)
+  gate_inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_qft)
+
+  qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_qft, n_qubit_count + 3, qubit_count)
+  inverse_qft::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_inverse_qft, n_qubit_count + 3, qubit_count)
+
+  QuantumComputer.add_gate_to_circuit!(circuit, qft)
+  for i in 1:n_qubit_count
+    control_qubit = n_qubit_count - i + 1
+    if control_qubit != n_qubit_count
+      gate_swap::QuantumComputer.Gate = QuantumComputer.gate_swap(control_qubit, n_qubit_count, qubit_count)
+      QuantumComputer.add_gate_to_circuit!(circuit, gate_swap)
+    end
+    circuit_modular_adder = controlled_controlled_modular_adder(n, (a * 2^(i - 1)) % n)
+    gate_modular_adder = QuantumComputer.circuit_convert_to_gate(circuit_modular_adder)
+    modular_adder = QuantumComputer.gate_extension(gate_modular_adder, n_qubit_count, qubit_count)
+    QuantumComputer.add_gate_to_circuit!(circuit, modular_adder)
+    if control_qubit != n_qubit_count
+      QuantumComputer.add_gate_to_circuit!(circuit, gate_swap)
+    end
+  end
+  QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
 
   circuit
 end
