@@ -240,16 +240,16 @@ end
   @test test_constant_adder_core(31, 31, 6)
 end
 
-@testset "controlled_controlled_modular_adder" begin
+@testset "shor2n3_controlled_controlled_modular_adder" begin
   a = 5
   n = 9
 
-  modular_adder = QuantumComputer.Circuits.controlled_controlled_modular_adder(n, a)
+  modular_adder = QuantumComputer.Circuits.shor2n3_controlled_controlled_modular_adder(n, a)
   gate_qft = QuantumComputer.gate_fourier_transform(5)
   gate_inverse_qft = QuantumComputer.gate_invert(gate_qft)
-  qft = QuantumComputer.gate_extension(gate_qft, 4, 8)
-  inverse_qft = QuantumComputer.gate_extension(gate_inverse_qft, 4, 8)
-  measurement = QuantumComputer.Measurement(Array(5:8), Array(5:8))
+  qft = QuantumComputer.gate_extension(gate_qft, 7, 11)
+  inverse_qft = QuantumComputer.gate_extension(gate_inverse_qft, 7, 11)
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11))
 
   circuit = QuantumComputer.Circuit()
   QuantumComputer.add_gate_to_circuit!(circuit, qft)
@@ -257,29 +257,29 @@ end
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
   QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
 
-  classical_register = QuantumComputer.ClassicalRegister(8)
+  classical_register = QuantumComputer.ClassicalRegister(11)
 
-  qubits::Matrix{Complex{Float64}} = [0 1; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits::Matrix{Complex{Float64}} = [0 1; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 1
 
-  qubits = [0 1; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits = [0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 5
 
-  qubits = [1 0; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits = [1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 5
 end
 
-@testset "controlled_modular_multiplier" begin
+@testset "shor2n3_controlled_modular_multiplier" begin
   a = 5
   n = 9
 
-  modular_multiplier = QuantumComputer.Circuits.controlled_modular_multiplier(n, a)
+  modular_multiplier = QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a)
   measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11))
   circuit = QuantumComputer.Circuit()
 
@@ -293,17 +293,17 @@ end
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 5
 
-  qubits = [1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits = [1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 5
 
-  qubits = [1 0; 1 0; 1 0; 0 1; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits = [0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 1
 
-  qubits = [1 0; 1 0; 0 1; 1 0; 0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
+  qubits = [0 1; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 0 1]
   superposition = QuantumComputer.Superposition(qubits)
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == 6
