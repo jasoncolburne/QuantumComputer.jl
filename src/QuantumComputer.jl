@@ -847,7 +847,7 @@ see the modular multiplier circuit in [this paper](https://arxiv.org/pdf/quant-p
 
 # Arguments:
 - `n`: the modulus
-- `a`: the constant to add
+- `a`: the constant to multiply by
 """
 function shor2n3_controlled_modular_multiplier(n::Int64, a::Int64)
   n_qubit_count::Int64 = ceil(log2(n))
@@ -875,6 +875,46 @@ function shor2n3_controlled_modular_multiplier(n::Int64, a::Int64)
     end
   end
   QuantumComputer.add_gate_to_circuit!(circuit, inverse_qft)
+
+  circuit
+end
+
+"""
+    shor2n3_controlled_ua(n, a)
+
+the controlled-Ua gate from [this paper](https://arxiv.org/pdf/quant-ph/0205095.pdf).
+
+# Arguments
+- `n`: the modulus
+- `a`: the constant to multiply `x` by
+"""
+function shor2n3_controlled_ua(n::Int64, a::Int64)
+  n_qubit_count::Int64 = ceil(log2(n))
+  qubit_count::Int64 = 2 * n_qubit_count + 3
+
+  a_inverse::Int64 = invmod(a, n)
+
+  modular_multiplier::QuantumComputer.Circuit = QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a)
+  circuit_inverse_modular_divider::QuantumComputer.Circuit = QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a_inverse)
+  gate_inverse_modular_divider::QuantumComputer.Gate = QuantumComputer.circuit_convert_to_gate(circuit_inverse_modular_divider)
+  modular_divider::QuantumComputer.Gate = QuantumComputer.gate_invert(gate_inverse_modular_divider)
+
+  circuit = QuantumComputer.Circuit()
+
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
+
+  # controlled register swap
+  swap_matrix::Matrix{Complex{Float64}} = (1.0 + 0.0im)*I(2^(qubit_count - 1))
+  for i in 1:n_qubit_count
+    gate_swap::QuantumComputer.Gate = QuantumComputer.gate_swap(i, n_qubit_count + i + 2, qubit_count - 1)
+    # these should all commute
+    swap_matrix *= gate_swap.matrix
+  end
+  gate_swap_registers::QuantumComputer.Gate = QuantumComputer.Gate(swap_matrix)
+  c_swap::QuantumComputer.Gate = QuantumComputer.gate_multi_control(gate_swap_registers, 1, qubit_count)
+  QuantumComputer.add_gate_to_circuit!(circuit, c_swap)
+
+  QuantumComputer.add_gate_to_circuit!(circuit, modular_divider)
 
   circuit
 end

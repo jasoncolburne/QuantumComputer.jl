@@ -309,6 +309,69 @@ end
   @test classical_register.value == 6
 end
 
+@testset "shor2n3_controlled_ua" begin
+  a = 5
+  n = 9
+
+  classical_register = QuantumComputer.ClassicalRegister(11)
+  modular_multiplier = QuantumComputer.Circuits.shor2n3_controlled_ua(n, a)
+
+  # first measure that we take no action when the control is not active
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(2:5))
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  qubits::Matrix{Complex{Float64}} = [1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 1
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11))
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  qubits = [1 0; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 0
+
+  # next we test that b is reset to 0 after the operation
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11))
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  qubits = [0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 0
+
+  # now we test that that x is multiplied by a
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(2:5))
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  qubits = [0 1; 1 0; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 5
+
+  # finally we test that the modulus is applied
+  qubits = [0 1; 1 0; 1 0; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 1
+
+  # one more for good measure
+  qubits = [0 1; 1 0; 1 0; 0 1; 0 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0]
+  superposition = QuantumComputer.Superposition(qubits)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == 6
+end
+
 @testset "11^x mod 13 period finder" begin
   qubit_count = 5
   bit_count = 3
