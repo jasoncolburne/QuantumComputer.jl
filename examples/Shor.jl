@@ -153,7 +153,7 @@ function shor_beauregard(n, a, sample_size)
     println()
 
     r % 2 == 1 && throw(ErrorException("r is odd, quantum algorithm has failed"))
-    @printf("found a potential value for (%d) for r\n", r)    
+    @printf("found a potential value (%d) for r\n", r)
 
     raised_a = a^(r >> 1)
     potential_factors = [gcd(raised_a - 1, n), gcd(raised_a + 1, n)]
@@ -165,7 +165,7 @@ end
 
 
 # this one is probably fine. play with n and fixed_a
-sample_size = 1024
+sample_size = 128
 
 x = shor_11x_mod_15(sample_size)
 y = convert(Int64, 15 / x)
@@ -176,7 +176,7 @@ println()
 
 # change these (but beware adding another bit to n will increase circuit complexity and memory required)
 n = 15
-fixed_a = 14
+fixed_a = 7
 
 x = shor_beauregard(n, fixed_a, sample_size)
 y = convert(Int64, n / x)
