@@ -8,5 +8,5 @@ end
 ```
 
 ```@autodocs
-Modules = [QuantumComputer]
+Modules = [QuantumComputer, QuantumComputer.Circuits]
 ```
