@@ -280,7 +280,7 @@ end
   n = 9
 
   modular_multiplier = QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a)
-  measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11))
+  measurement = QuantumComputer.Measurement(Array(8:11), Array(8:11), 1)
   circuit = QuantumComputer.Circuit()
 
   QuantumComputer.add_subcircuit_to_circuit!(circuit, modular_multiplier)
