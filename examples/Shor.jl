@@ -120,6 +120,7 @@ function shor_beauregard(n, a, sample_size)
 
     println("removing trivial solutions")
     filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
+    length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
 
     println("eliminating outliers")
     counts = countmap(filtered)
@@ -130,6 +131,7 @@ function shor_beauregard(n, a, sample_size)
         end
     end
     filtered = [sample for sample in filtered if counts[sample] >= 2*n_qubit_count - 1]
+    length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
 
     labels = Array{String, 1}(undef, 0);
     values = Array{Integer, 1}(undef, 0);
