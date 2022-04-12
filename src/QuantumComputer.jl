@@ -884,7 +884,7 @@ using ..QuantumComputer
 """
     constant_adder(n, qubit_count)
 
-a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`)
+a quantum circuit that adds `n` to the superposition's value (`mod 2^qubit_count`). based on Draper's circuit.
 
 # Arguments:
 - `n`: the constant to add
