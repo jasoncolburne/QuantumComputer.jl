@@ -41,7 +41,7 @@ function shor_11x_mod_15(sample_size)
     println()
 
     println("converting samples to phases and determining probable denominators")
-    denominators = [denominator(rationalize(value/(2^(n_qubit_count)), tol=1/(2*n))) for value in samples]
+    denominators = [denominator(rationalize(value/(2^(n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in samples]
     filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
 
     labels = Array{String, 1}(undef, 0);
@@ -123,11 +123,11 @@ function shor_beauregard(n, a, sample_size)
             max_count = count
         end
     end
-    filtered = [sample for sample in samples if counts[sample] > (max_count >> 3)]
+    filtered = [sample for sample in samples if counts[sample] >= 2*n_qubit_count - 1]
 
     println("converting samples to phases and determining probable denominators")
 
-    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2*n))) for value in filtered]
+    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in filtered]
     filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
 
     labels = Array{String, 1}(undef, 0);
