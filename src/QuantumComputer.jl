@@ -734,8 +734,14 @@ function add_subcircuit_to_circuit!(circuit::Circuit, subcircuit::Circuit)
 end
 
 cache_base = ["quantum_gates"]
+cached_gates = Dict{String,Gate}()
 
 function gate_load_from_cache(cache_path)
+    key = join(cache_path, "/")
+    if key in keys(cached_gates)
+        return cached_gates[key]
+    end
+
     filename = pop!(cache_path)
 
     path = join(vcat(cache_base, cache_path), "/")
@@ -745,6 +751,7 @@ function gate_load_from_cache(cache_path)
     gate = nothing
     try
         gate = deserialize(string(filename, ".qg"))
+        cached_gates[key] = gate
     catch
     end
 
@@ -771,6 +778,9 @@ function gate_save_to_cache(cache_path, gate)
     cd(path)
 
     push!(cache_path, filename)
+
+    key = join(cache_path, "/")
+    cached_gates[key] = gate
 end
 
 function circuit_convert_to_gate(circuit::Circuit, cache_path::Array{String,1} = Array{String,1}(undef, 0))
