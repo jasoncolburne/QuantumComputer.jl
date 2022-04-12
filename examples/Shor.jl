@@ -115,20 +115,21 @@ function shor_beauregard(n, a, sample_size)
     println(barplot(labels, values, xlabel = "samples"))
     println()
 
+    println("converting samples to phases and determining probable denominators")
+    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in samples]
+
+    println("removing trivial solutions")
+    filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
+
     println("eliminating outliers")
-    counts = countmap(samples)
+    counts = countmap(filtered)
     max_count = first(counts)[2]
     for (value, count) in counts
         if count > max_count
             max_count = count
         end
     end
-    filtered = [sample for sample in samples if counts[sample] >= 2*n_qubit_count - 1]
-
-    println("converting samples to phases and determining probable denominators")
-
-    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in filtered]
-    filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
+    filtered = [sample for sample in filtered if counts[sample] >= 2*n_qubit_count - 1]
 
     labels = Array{String, 1}(undef, 0);
     values = Array{Integer, 1}(undef, 0);
