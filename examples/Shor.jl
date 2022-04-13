@@ -1,6 +1,8 @@
+using Pkg
+Pkg.activate(".")
+using Printf, StatsBase, UnicodePlots
 push!(LOAD_PATH,"../src/")
-
-using Printf, QuantumComputer, StatsBase, UnicodePlots
+using QuantumComputer
 
 function shor_11x_mod_15(sample_size)
     n_qubit_count = 3
@@ -99,17 +101,20 @@ function shor_beauregard(n, a, sample_size)
     @printf("sampling circuit (%d samples)...\n", sample_size)
     samples = Array{Int64,1}(undef, sample_size)
     for i in 1:sample_size
+        print(".")
         superposition = QuantumComputer.Superposition(qubits)
         QuantumComputer.apply_circuit_to_superposition!(superposition, shor, classical_register)
         samples[i] = classical_register.value
     end
+    println()
 
     labels = Array{String, 1}(undef, 0);
     values = Array{Integer, 1}(undef, 0);
 
-    for (value, count) in countmap(samples)
+    counts = countmap(samples)
+    for value in sort([key for key in keys(counts)])
       push!(labels, string(string(value), " |", string(value, base=2, pad=2*n_qubit_count), ">"))
-      push!(values, count)
+      push!(values, counts[value])
     end
 
     println(barplot(labels, values, xlabel = "samples"))
@@ -120,6 +125,10 @@ function shor_beauregard(n, a, sample_size)
 
     println("removing trivial solutions")
     filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
+    length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
+
+    println("removing odd solutions")
+    filtered = [denominator for denominator in filtered if denominator % 2 == 0]
     length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
 
     println("eliminating outliers")
@@ -140,7 +149,9 @@ function shor_beauregard(n, a, sample_size)
     r = first(counts)[1]
     max_value = first(counts)[1]
     max_count = first(counts)[2]
-    for (value, count) in counts
+    for value in sort([key for key in keys(counts)])
+        count = counts[value]
+        
         push!(labels, string(value))
         push!(values, count)
 
@@ -166,22 +177,26 @@ function shor_beauregard(n, a, sample_size)
     first(factors)
 end
 
-
 # this one is probably fine. play with n and fixed_a
 sample_size = 128
 
-x = shor_11x_mod_15(sample_size)
-y = convert(Int64, 15 / x)
+# x = shor_11x_mod_15(sample_size)
+# y = convert(Int64, 15 / x)
 
-@printf("factored 15 into [%d, %d]!\n", x, y)
+# @printf("factored 15 into [%d, %d]!\n", x, y)
 
-println()
+# println()
 
 # change these (but beware adding another bit to n will increase circuit complexity and memory required)
-n = 15
-fixed_a = 7
+n = length(ARGS) > 1 ? parse(Int64, ARGS[1]) : 15
+fixed_a = length(ARGS) > 1 ? parse(Int64, ARGS[2]) : 7
 
-x = shor_beauregard(n, fixed_a, sample_size)
-y = convert(Int64, n / x)
+try
+    println()
+    x = shor_beauregard(n, fixed_a, sample_size)
+    y = convert(Int64, n / x)
 
-@printf("factored %d into [%d, %d]!\n", n, x, y)
+    @printf("factored %d into [%d, %d]!\n", n, x, y)
+catch
+    @printf("zero non-trival factors of %d found\n", n)
+end
