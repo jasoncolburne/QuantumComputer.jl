@@ -1,3 +1,12 @@
+# Getting Started
+
+## Running Tests
+```
+QuantumComputer.jl$ julia
+julia> ]
+pkg> activate .
+pkg> test
+```
 
 <a id='QuantumComputer.jl-Documentation'></a>
 
@@ -33,7 +42,7 @@ what this module can do:
   * generate some circuits
   * construct a gate from a circuit
   * retain phase of state of unmeasured qubits (unsure if this is a proper collapse, but was needed for Beauregard's one qubit trick)
-  * cache gates on disk (when building the shor2n3 circuit, this is hardcoded. run at your own risk.)
+  * cache gates on disk (when building the shor2n3 circuit in examples, this is hardcoded. run at your own risk or modify the source.)
 
 what this module cannot do:
 

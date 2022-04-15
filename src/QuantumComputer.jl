@@ -783,6 +783,28 @@ function gate_save_to_cache(cache_path, gate)
     cached_gates[key] = gate
 end
 
+function gate_remove_from_cache(cache_path)
+    filename = pop!(cache_path)
+
+    path = join(vcat(cache_base, cache_path), "/")
+    run(`mkdir -p $path`)
+    try
+        cd(path)
+        rm(string(filename, ".qg"))
+    catch
+    finally
+        # this is pretty fragile but the mkdir above kind of saves us from edge cases
+        ancestor_path = [".." for _ in vcat(cache_base, cache_path)]
+        path = join(ancestor_path, "/")
+        cd(path)
+    end
+
+    push!(cache_path, filename)
+
+    key = join(cache_path, "/")
+    delete!(cached_gates, key)
+end
+
 function circuit_convert_to_gate(circuit::Circuit, cache_path::Array{String,1} = Array{String,1}(undef, 0))
     if length(cache_path) > 0
         gate = gate_load_from_cache(cache_path)
@@ -951,13 +973,16 @@ a quantum circuit that adds `a` to the superposition's value (`mod n`). see the 
 # Arguments:
 - `n`: the modulus
 - `a`: the constant to add
+- `no_cache`: if true, caching will not be employed when constructing gates
+- `rebuild`: if true, this will destroy the relevant cached gates before regenerating them
 """
-function shor2n3_controlled_controlled_modular_adder(n::Int64, a::Int64)
+function shor2n3_controlled_controlled_modular_adder(n::Int64, a::Int64, no_cache = true, rebuild = false)
     n_qubit_count::Int64 = ceil(log2(n))
     qubit_count::Int64 = 2 * n_qubit_count + 3
 
-    cache_path = ["constant_adder_core", string(n_qubit_count + 1), string(a)]
-    gate_add_a = QuantumComputer.gate_load_from_cache(cache_path)
+    cache_path = no_cache ? Array{String,1}(undef, 0) : ["constant_adder_core", string(n_qubit_count + 1), string(a)]
+    rebuild && !no_cache && gate_remove_from_cache(cache_path)
+    gate_add_a = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
     if typeof(gate_add_a) == Nothing
         circuit_add_a::QuantumComputer.Circuit = constant_adder_core(a, n_qubit_count + 1)
         gate_add_a = QuantumComputer.circuit_convert_to_gate(circuit_add_a, cache_path)
@@ -975,8 +1000,9 @@ function shor2n3_controlled_controlled_modular_adder(n::Int64, a::Int64)
     cc_subtract_a::QuantumComputer.Gate =
         QuantumComputer.gate_multi_control(subtract_a, 2, qubit_count)
 
-    cache_path = ["constant_adder_core", string(n_qubit_count + 1), string(n)]
-    gate_add_n = QuantumComputer.gate_load_from_cache(cache_path)
+    cache_path = no_cache ? Array{String,1}(undef, 0) : ["constant_adder_core", string(n_qubit_count + 1), string(n)]
+    rebuild && !no_cache && gate_remove_from_cache(cache_path)
+    gate_add_n = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
     if typeof(gate_add_n) == Nothing
       circuit_add_n::QuantumComputer.Circuit = constant_adder_core(n, n_qubit_count + 1)
       gate_add_n = QuantumComputer.circuit_convert_to_gate(circuit_add_n, cache_path)
@@ -1037,8 +1063,10 @@ see the modular multiplier circuit in [this paper](https://arxiv.org/pdf/quant-p
 # Arguments:
 - `n`: the modulus
 - `a`: the constant to multiply by
+- `no_cache`: if true, caching will not be employed when constructing gates
+- `rebuild`: if true, this will destroy the relevant cached gates before regenerating them
 """
-function shor2n3_controlled_modular_multiplier(n::Int64, a::Int64)
+function shor2n3_controlled_modular_multiplier(n::Int64, a::Int64, no_cache = true, rebuild = false)
     n_qubit_count::Int64 = ceil(log2(n))
     qubit_count::Int64 = 2 * n_qubit_count + 3
 
@@ -1062,10 +1090,11 @@ function shor2n3_controlled_modular_multiplier(n::Int64, a::Int64)
             QuantumComputer.add_gate_to_circuit!(circuit, gate_swap)
         end
 
-        cache_path = ["shor2n3", "controlled_controlled_modular_adder", string(qubit_count), string(n), string((a * 2^(i - 1)) % n)]
-        modular_adder = QuantumComputer.gate_load_from_cache(cache_path)
+        cache_path = no_cache ? Array{String,1}(undef, 0) : ["shor2n3", "controlled_controlled_modular_adder", string(qubit_count), string(n), string((a * 2^(i - 1)) % n)]
+        rebuild && !no_cache && gate_remove_from_cache(cache_path)
+        modular_adder = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
         if typeof(modular_adder) == Nothing
-            circuit_modular_adder = shor2n3_controlled_controlled_modular_adder(n, (a * 2^(i - 1)) % n)
+            circuit_modular_adder = shor2n3_controlled_controlled_modular_adder(n, (a * 2^(i - 1)) % n, no_cache, rebuild)
             modular_adder = QuantumComputer.circuit_convert_to_gate(circuit_modular_adder, cache_path)
         end
 
@@ -1087,26 +1116,30 @@ the controlled-Ua gate from [this paper](https://arxiv.org/pdf/quant-ph/0205095.
 # Arguments
 - `n`: the modulus
 - `a`: the constant to multiply `x` by
+- `no_cache`: if true, caching will not be employed when constructing gates
+- `rebuild`: if true, this will destroy the relevant cached gates before regenerating them
 """
-function shor2n3_controlled_ua(n::Int64, a::Int64)
+function shor2n3_controlled_ua(n::Int64, a::Int64, no_cache = true, rebuild = false)
     n_qubit_count::Int64 = ceil(log2(n))
     qubit_count::Int64 = 2 * n_qubit_count + 3
 
     a_inverse::Int64 = invmod(a, n)
 
-    cache_path = ["shor2n3", "controlled_modular_multiplier", string(qubit_count), string(n), string(a)]
-    modular_multiplier = QuantumComputer.gate_load_from_cache(cache_path)
+    cache_path = no_cache ? Array{String,1}(undef, 0) : ["shor2n3", "controlled_modular_multiplier", string(qubit_count), string(n), string(a)]
+    rebuild && !no_cache && gate_remove_from_cache(cache_path)
+    modular_multiplier = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
     if typeof(modular_multiplier) == Nothing
         circuit_modular_multiplier::QuantumComputer.Circuit =
-            QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a)
+            QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a, no_cache, rebuild)
         modular_multiplier = QuantumComputer.circuit_convert_to_gate(circuit_modular_multiplier, cache_path)
     end
 
-    cache_path = ["shor2n3", "controlled_modular_multiplier", string(qubit_count), string(n), string(a_inverse)]
-    gate_inverse_modular_divider = QuantumComputer.gate_load_from_cache(cache_path)
+    cache_path = no_cache ? Array{String,1}(undef, 0) : ["shor2n3", "controlled_modular_multiplier", string(qubit_count), string(n), string(a_inverse)]
+    rebuild && !no_cache && gate_remove_from_cache(cache_path)
+    gate_inverse_modular_divider = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
     if typeof(gate_inverse_modular_divider) == Nothing
         circuit_inverse_modular_divider::QuantumComputer.Circuit =
-            QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a_inverse)
+            QuantumComputer.Circuits.shor2n3_controlled_modular_multiplier(n, a_inverse, no_cache, rebuild)
         gate_inverse_modular_divider =
             QuantumComputer.circuit_convert_to_gate(circuit_inverse_modular_divider, cache_path)
     end
@@ -1183,8 +1216,10 @@ Beauregard's circuit for finding the period of a^x mod n.
 # Arguments
 - `n`: the modulus
 - `a`: the base
+- `no_cache`: if true, caching will not be employed when constructing gates
+- `rebuild`: if true, this will destroy the relevant cached gates before regenerating them
 """
-function shor2n3_period_finding(n::Int64, a::Int64)
+function shor2n3_period_finding(n::Int64, a::Int64, no_cache = true, rebuild = false)
     n_qubit_count::Int64 = ceil(log2(n))
     qubit_count::Int64 = 2 * n_qubit_count + 3
 
@@ -1205,11 +1240,12 @@ function shor2n3_period_finding(n::Int64, a::Int64)
         end
 
         local_a = powermod(a, 2^(i - 1), n)
-        cache_path = ["shor2n3", "controlled_ua", string(qubit_count), string(n), string(local_a)]
-        gates_ua[i] = QuantumComputer.gate_load_from_cache(cache_path)
+        cache_path = no_cache ? Array{String,1}(undef, 0) : ["shor2n3", "controlled_ua", string(qubit_count), string(n), string(local_a)]
+        rebuild && !no_cache && gate_remove_from_cache(cache_path)
+        gates_ua[i] = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
         if typeof(gates_ua[i]) == Nothing
             circuit_ua::QuantumComputer.Circuit =
-                shor2n3_controlled_ua(n, local_a)
+                shor2n3_controlled_ua(n, local_a, no_cache, rebuild)
             gates_ua[i] = QuantumComputer.circuit_convert_to_gate(circuit_ua, cache_path)
         end
     end

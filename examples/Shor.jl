@@ -96,7 +96,7 @@ function shor_beauregard(n, a, sample_size)
     qubits = convert(Array{Complex{Float64},2}, raw_qubits)
     classical_register = QuantumComputer.ClassicalRegister(2 * n_qubit_count)
     println("building period finding circuit (this can take a few minutes the first time)...")
-    shor = QuantumComputer.Circuits.shor2n3_period_finding(n, a)
+    shor = QuantumComputer.Circuits.shor2n3_period_finding(n, a, false)
 
     @printf("sampling circuit (%d samples)...\n", sample_size)
     samples = Array{Int64,1}(undef, sample_size)
