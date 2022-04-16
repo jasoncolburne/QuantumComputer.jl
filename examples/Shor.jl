@@ -109,72 +109,59 @@ function shor_beauregard(n, a, sample_size)
     println()
 
     labels = Array{String, 1}(undef, 0);
-    values = Array{Integer, 1}(undef, 0);
+    vals = Array{Integer, 1}(undef, 0);
 
     counts = countmap(samples)
     for value in sort([key for key in keys(counts)])
-      push!(labels, string(string(value), " |", string(value, base=2, pad=2*n_qubit_count), ">"))
-      push!(values, counts[value])
+        push!(labels, string(string(value), " |", string(value, base=2, pad=2*n_qubit_count), ">"))
+        push!(vals, counts[value])
     end
 
-    println(barplot(labels, values, xlabel = "samples"))
+    println(barplot(labels, vals, xlabel = "samples"))
     println()
 
-    println("converting samples to phases and determining probable denominators")
-    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in samples]
+    filtered = samples
+    if length([k for k in keys(counts)]) > 6
+        z = median([count for count in values(counts)]) + 1
+        z = √(mean([count for count in values(counts)]))
+        @printf("eliminating outliers with counts <= %f\n", z)
+        filtered = [sample for sample in samples if counts[sample] > z]
+        length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
+    end
 
-    println("removing trivial solutions")
-    filtered = [denominator for denominator in denominators if !(denominator in [1, n])]
-    length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
+    println("converting samples to phases and determining probable denominators")
+    denominators = [denominator(rationalize(value/(2^(2*n_qubit_count)), tol=1/(2^(2*n_qubit_count-1)))) for value in filtered]
 
     println("removing odd solutions")
-    filtered = [denominator for denominator in filtered if denominator % 2 == 0]
-    length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
-
-    println("eliminating outliers")
-    counts = countmap(filtered)
-    max_count = first(counts)[2]
-    for (value, count) in counts
-        if count > max_count
-            max_count = count
-        end
-    end
-    filtered = [sample for sample in filtered if counts[sample] >= 2*n_qubit_count - 1]
+    filtered = [denominator for denominator in denominators if denominator % 2 == 0]
     length(filtered) == 0 && throw(ErrorException("found zero non-trivial factors"))
 
     labels = Array{String, 1}(undef, 0);
-    values = Array{Integer, 1}(undef, 0);
+    vals = Array{Integer, 1}(undef, 0);
 
     counts = countmap(filtered)
-    r = first(counts)[1]
-    max_value = first(counts)[1]
-    max_count = first(counts)[2]
     for value in sort([key for key in keys(counts)])
-        count = counts[value]
-        
         push!(labels, string(value))
-        push!(values, count)
-
-        if count > max_count
-            r = value
-            max_count = count
-        end
-        if value > max_value
-            max_value = value
-        end
+        push!(vals, counts[value])
     end
-    println(barplot(labels, values, xlabel = "samples", ylabel = "r"))
+    println(barplot(labels, vals, xlabel = "samples", ylabel = "r"))
     println()
 
-    r % 2 == 1 && throw(ErrorException("r is odd, quantum algorithm has failed"))
-    @printf("found a potential value (%d) for r\n", r)
+    t(v) = counts[v]
+    candidates = sort([v for v in keys(counts)], by = t, rev = true)
 
-    raised_a = a^(r >> 1)
-    potential_factors = [gcd(raised_a - 1, n), gcd(raised_a + 1, n)]
-    factors = [x for x in potential_factors if !(x in [1, n])]
+    println("trying up to 4 candidates")
+    firstn(a, n) = a[intersect(eachindex(a), 1:n)]
+    for r in firstn(candidates, 4)
+        @printf("r = %d\n", r)
+        raised_a = a^(r >> 1)
+        potential_factors = [gcd(raised_a - 1, n), gcd(raised_a + 1, n)]
+        factors = [x for x in potential_factors if !(x in [1, n])]
 
-    length(factors) == 0 && throw(ErrorException("found zero non-trivial factors"))
-    first(factors)
+        length(factors) == 0 && continue
+        return first(factors)
+    end
+    throw(ErrorException("found zero non-trivial factors"))
 end
 
 # this one is probably fine. play with n and fixed_a
@@ -198,5 +185,5 @@ try
 
     @printf("factored %d into [%d, %d]!\n", n, x, y)
 catch
-    @printf("zero non-trival factors of %d found\n", n)
+    @printf("zero non-trivial factors of %d found\n", n)
 end

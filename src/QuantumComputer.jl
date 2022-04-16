@@ -16,8 +16,7 @@ what this module can do:
 - generate a variety of single- and multi-qubit static and dynamic gates
 - generate some circuits
 - construct a gate from a circuit
-- retain phase of state of unmeasured qubits (unsure if this is a proper collapse, but was needed for Beauregard's one qubit trick)
-- cache gates on disk (when building the shor2n3 circuit, this is hardcoded. run at your own risk.)
+- cache gates on disk (when building the shor2n3 circuit using the scripts in examples, this is hardcoded. run at your own risk.)
 
 what this module cannot do:
 - decompose a gate into a circuit of smaller gates (planned, long term)
@@ -569,15 +568,13 @@ function measure_superposition(
         end
     end
 
-    # probability_of_ones = [√(probability) for probability in probability_of_ones]
-
     initial_value = classical_register.value
     for j = 1:measurement.sample_size
         measurement.samples[j] = initial_value
         for i = 1:measurement_qubit_count
             bit_to_output = measurement.bits_to_output[i]
             mask = 2^(classical_register.width - bit_to_output)
-            # should this be >= or >? it's only an epsilon right?
+            # should this be >= or >? it surely doesn't matter but i'd like to be correct
             if probability_of_ones[i] >= rand()
                 measurement.samples[j] |= mask
             else
