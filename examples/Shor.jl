@@ -75,11 +75,11 @@ function shor_beauregard(n, a, sample_size)
     t(v) = counts[v]
     candidates = sort([v for v in keys(counts)], by = t, rev = true)
 
-    println("trying up to 4 candidates")
+    @printf("trying up to %d candidates\n", n_qubit_count)
     firstn(a, n) = a[intersect(eachindex(a), 1:n)]
-    for r in firstn(candidates, 4)
+    for r in firstn(candidates, n_qubit_count)
         @printf("r = %d\n", r)
-        raised_a = a^(r >> 1)
+        raised_a = convert(BigInt, a)^(r >> 1)
         potential_factors = [gcd(raised_a - 1, n), gcd(raised_a + 1, n)]
         factors = [x for x in potential_factors if !(x in [1, n])]
 
