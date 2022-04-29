@@ -730,7 +730,7 @@ function add_subcircuit_to_circuit!(circuit::Circuit, subcircuit::Circuit)
     push!(circuit.components, subcircuit)
 end
 
-cache_base = ["quantum_gates"]
+cache_base = ["/mnt/gates"]
 cached_gates = Dict{String,Gate}()
 
 function gate_load_from_cache(cache_path)
