@@ -16,7 +16,7 @@ what this module can do:
 - generate a variety of single- and multi-qubit static and dynamic gates
 - generate some circuits
 - construct a gate from a circuit
-- cache gates on disk (when building the shor2n3 circuit using the scripts in examples, this is hardcoded. run at your own risk.)
+- cache gates on disk
 
 what this module cannot do:
 - decompose a gate into a circuit of smaller gates (planned, long term)
@@ -730,15 +730,20 @@ function add_subcircuit_to_circuit!(circuit::Circuit, subcircuit::Circuit)
     push!(circuit.components, subcircuit)
 end
 
-cache_base = ["/mnt/gates"]
+cache_base = nothing
 cached_gates = Dict{String,Gate}()
+
+function gate_set_cache_base(base)
+    global cache_base = [base]
+end
 
 function gate_load_from_cache(cache_path)
     key = join(cache_path, "/")
-    if key in keys(cached_gates)
-        return cached_gates[key]
-    end
+    key in keys(cached_gates) && return cached_gates[key]
+    cache_base == nothing && return nothing
 
+    # after this pop, we need to make it to the push at the end of the function
+    # so don't return early for some reason
     filename = pop!(cache_path)
 
     path = join(vcat(cache_base, cache_path), "/")
@@ -762,41 +767,45 @@ function gate_load_from_cache(cache_path)
 end
 
 function gate_save_to_cache(cache_path, gate)
-    filename = pop!(cache_path)
+    if cache_base != nothing
+        filename = pop!(cache_path)
 
-    path = join(vcat(cache_base, cache_path), "/")
-    run(`mkdir -p $path`)
-    cd(path)
+        path = join(vcat(cache_base, cache_path), "/")
+        run(`mkdir -p $path`)
+        cd(path)
 
-    serialize(string(filename, ".qg"), gate)
+        serialize(string(filename, ".qg"), gate)
 
-    ancestor_path = [".." for _ in vcat(cache_base, cache_path)]
-    path = join(ancestor_path, "/")
-    cd(path)
+        ancestor_path = [".." for _ in vcat(cache_base, cache_path)]
+        path = join(ancestor_path, "/")
+        cd(path)
 
-    push!(cache_path, filename)
+        push!(cache_path, filename)
+    end
 
     key = join(cache_path, "/")
     cached_gates[key] = gate
 end
 
 function gate_remove_from_cache(cache_path)
-    filename = pop!(cache_path)
+    if cache_base != nothing
+        filename = pop!(cache_path)
 
-    path = join(vcat(cache_base, cache_path), "/")
-    run(`mkdir -p $path`)
-    try
-        cd(path)
-        rm(string(filename, ".qg"))
-    catch
-    finally
-        # this is pretty fragile but the mkdir above kind of saves us from edge cases
-        ancestor_path = [".." for _ in vcat(cache_base, cache_path)]
-        path = join(ancestor_path, "/")
-        cd(path)
+        path = join(vcat(cache_base, cache_path), "/")
+        run(`mkdir -p $path`)
+        try
+            cd(path)
+            rm(string(filename, ".qg"))
+        catch
+        finally
+            # this is pretty fragile but the mkdir above kind of saves us from edge cases
+            ancestor_path = [".." for _ in vcat(cache_base, cache_path)]
+            path = join(ancestor_path, "/")
+            cd(path)
+        end
+
+        push!(cache_path, filename)
     end
-
-    push!(cache_path, filename)
 
     key = join(cache_path, "/")
     delete!(cached_gates, key)

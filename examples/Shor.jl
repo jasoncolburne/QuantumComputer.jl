@@ -96,6 +96,10 @@ sample_size = 128
 n = length(ARGS) > 1 ? parse(Int64, ARGS[1]) : 15
 fixed_a = length(ARGS) > 1 ? parse(Int64, ARGS[2]) : 7
 
+if length(ARGS) > 2
+    QuantumComputer.gate_set_cache_base(ARGS[3])
+end
+
 try
     println()
     x = shor_beauregard(n, fixed_a, sample_size)
