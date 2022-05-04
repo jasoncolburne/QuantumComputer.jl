@@ -397,3 +397,25 @@ end
   @test classical_register.value == 4
   @test sum(map(x -> abs(x^2), superposition.state)) ≈ 1 atol=0.00000000001
 end
+
+@testset "grover" begin
+  qubit_count = 10
+  # should work for any valid input
+  target_input = rand(0:(2^qubit_count - 1))
+
+  circuit_oracle = QuantumComputer.Circuits.identification_oracle(qubit_count + 1, target_input)
+  oracle = QuantumComputer.circuit_convert_to_gate(circuit_oracle)
+  grover = QuantumComputer.Circuits.grover(oracle)
+
+  register = QuantumComputer.Register(qubit_count + 1, 1)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count, 0)
+  superposition = QuantumComputer.Superposition(register.qubits)
+  measurement = QuantumComputer.Measurement(Array(1:qubit_count), Array(1:qubit_count))
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, grover)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+  @test classical_register.value == target_input
+end
