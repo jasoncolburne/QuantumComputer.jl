@@ -15,7 +15,7 @@ function grover(qubit_count, target_input, sample_size)
 
     circuit_oracle = QuantumComputer.Circuits.identification_oracle(qubit_count + 1, target_input)
     gate_oracle = QuantumComputer.circuit_convert_to_gate(circuit_oracle)
-    circuit_grover = QuantumComputer.Circuits.grover(gate_oracle)
+    circuit_grover = QuantumComputer.Circuits.grover(gate_oracle, false)
     measurement = QuantumComputer.Measurement(Array(1:qubit_count), Array(1:qubit_count), sample_size)
 
     circuit = QuantumComputer.Circuit()
@@ -34,6 +34,10 @@ end
 sample_size = 128
 
 qubit_count = length(ARGS) > 0 ? parse(Int64, ARGS[1]) : 10
-target_input = length(ARGS) > 1 ? parse(Int64, ARGS[2]) : rand(0:(2^qubit_count-1))
+if length(ARGS) > 1
+    QuantumComputer.gate_set_cache_base(ARGS[2])
+end
+target_input = length(ARGS) > 2 ? parse(Int64, ARGS[3]) : rand(0:(2^qubit_count-1))
+
 
 grover(qubit_count, target_input, sample_size)

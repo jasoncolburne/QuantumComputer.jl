@@ -1374,7 +1374,7 @@ function grover_diffusion_operator(qubit_count::Int64, gate_h::QuantumComputer.G
 end
 
 # https://arxiv.org/pdf/quant-ph/0301079.pdf
-function grover(oracle::QuantumComputer.Gate)
+function grover(oracle::QuantumComputer.Gate, no_cache = true, rebuild = false)
     qubit_count::Int64 = oracle.superposed_qubits_required - 1
 
     circuit = QuantumComputer.Circuit()
@@ -1389,8 +1389,14 @@ function grover(oracle::QuantumComputer.Gate)
 
     QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
 
-    circuit_diffusor = grover_diffusion_operator(qubit_count, small_h)
-    gate_diffusor = QuantumComputer.circuit_convert_to_gate(circuit_diffusor)
+
+    cache_path = no_cache ? Array{String,1}(undef, 0) : ["grover", "diffusor", string(qubit_count)]
+    rebuild && !no_cache && gate_remove_from_cache(cache_path)
+    gate_diffusor = no_cache ? nothing : QuantumComputer.gate_load_from_cache(cache_path)
+    if typeof(gate_diffusor) == Nothing
+        circuit_diffusor = grover_diffusion_operator(qubit_count, small_h)
+        gate_diffusor = QuantumComputer.circuit_convert_to_gate(circuit_diffusor, cache_path)
+    end
     gate_extended_diffusor = QuantumComputer.gate_extension(gate_diffusor, 1, qubit_count + 1)
 
     circuit_grover = QuantumComputer.Circuit()
