@@ -325,6 +325,15 @@ function ket_bra(i::Int64, j::Int64)::Matrix{Complex{Float64}}
     matrix
 end
 
+function gate_expansion(gate::Gate, qubit_count::Int64)
+    matrix_single = gate.matrix
+    matrix = matrix_single
+    for i in 2:qubit_count
+         matrix = kron(matrix, matrix_single)
+    end
+    QuantumComputer.Gate(matrix)
+end
+
 """
     gate_extension(gate, qubit_index, qubit_count)
 
@@ -1278,9 +1287,8 @@ function period_finding_for_11x_mod_15()
     qubit_count = 5
 
     circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
-    h_matrix = QuantumComputer.gate_h.matrix
     gate_h::QuantumComputer.Gate = QuantumComputer.Gate(
-        kron(((1.0 + 0.0im) * I)(4), kron(h_matrix, kron(h_matrix, h_matrix))),
+        kron(((1.0 + 0.0im) * I)(4), QuantumComputer.gate_expansion(QuantumComputer.gate_h, 3).matrix),
     )
     QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
     gate_cx::QuantumComputer.Gate = QuantumComputer.gate_cx(3, 4, qubit_count)
@@ -1379,16 +1387,9 @@ function grover(oracle::QuantumComputer.Gate, no_cache = true, rebuild = false)
 
     circuit = QuantumComputer.Circuit()
 
-    matrix_h = QuantumComputer.gate_h.matrix
-    matrix = matrix_h
-    for i in 2:qubit_count
-         matrix = kron(matrix, matrix_h)
-    end
-    small_h::QuantumComputer.Gate = QuantumComputer.Gate(matrix)
-    gate_h::QuantumComputer.Gate = QuantumComputer.Gate(kron(matrix, matrix_h))
-
+    small_h::QuantumComputer.Gate = QuantumComputer.gate_expansion(QuantumComputer.gate_h, qubit_count)
+    gate_h::QuantumComputer.Gate = QuantumComputer.Gate(kron(small_h.matrix, QuantumComputer.gate_h.matrix))
     QuantumComputer.add_gate_to_circuit!(circuit, gate_h)
-
 
     cache_path = no_cache ? Array{String,1}(undef, 0) : ["grover", "diffusor", string(qubit_count)]
     rebuild && !no_cache && gate_remove_from_cache(cache_path)
@@ -1409,6 +1410,42 @@ function grover(oracle::QuantumComputer.Gate, no_cache = true, rebuild = false)
     for _ in 1:iterations
         QuantumComputer.add_gate_to_circuit!(circuit, gate_grover)
     end
+
+    circuit
+end
+
+function cx_balanced_oracle(qubit_count::Int64)
+    circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+    for i in 1:(qubit_count - 1)
+        gate_cx = QuantumComputer.gate_cx(i, qubit_count, qubit_count)
+        QuantumComputer.add_gate_to_circuit!(circuit, gate_cx)
+    end
+
+    circuit
+end
+
+function constant_oracle(qubit_count::Int64, result::Bool)
+    circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+    gate = result ? QuantumComputer.gate_extension(QuantumComputer.gate_x, qubit_count, qubit_count) : QuantumComputer.Gate(convert(Matrix{Complex{Float64}}, ((1.0 + 0.0im) * I)(2^qubit_count)))
+    QuantumComputer.add_gate_to_circuit!(circuit, gate)
+
+    circuit
+end
+
+function deutsch_jozsa(oracle::QuantumComputer.Gate)
+    qubit_count::Int64 = oracle.superposed_qubits_required - 1
+
+    circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+    postfix_h = QuantumComputer.gate_expansion(QuantumComputer.gate_h, qubit_count)
+    prefix_h = QuantumComputer.Gate(kron(postfix_h.matrix, QuantumComputer.gate_h.matrix))
+    postfix_h_extended = QuantumComputer.gate_extension(postfix_h, 1, qubit_count + 1)
+
+    QuantumComputer.add_gate_to_circuit!(circuit, prefix_h)
+    QuantumComputer.add_gate_to_circuit!(circuit, oracle)
+    QuantumComputer.add_gate_to_circuit!(circuit, postfix_h_extended)
 
     circuit
 end

@@ -419,3 +419,63 @@ end
   QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
   @test classical_register.value == target_input
 end
+
+@testset "deutsch-jozsa, constant oracle f(x) = 1" begin
+  qubit_count = 10
+
+  oracle_circuit = QuantumComputer.Circuits.constant_oracle(qubit_count, true)
+  oracle = QuantumComputer.circuit_convert_to_gate(oracle_circuit)
+  deutsch_jozsa = QuantumComputer.Circuits.deutsch_jozsa(oracle)
+  measurement = QuantumComputer.Measurement(Array(1:(qubit_count-1)), Array(1:(qubit_count-1)))
+
+  register = QuantumComputer.Register(qubit_count, 1)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count - 1, 0)
+  superposition = QuantumComputer.Superposition(register.qubits)
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, deutsch_jozsa)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value == 0
+end
+
+@testset "deutsch-jozsa, constant oracle f(x) = 0" begin
+  qubit_count = 10
+
+  oracle_circuit = QuantumComputer.Circuits.constant_oracle(qubit_count, false)
+  oracle = QuantumComputer.circuit_convert_to_gate(oracle_circuit)
+  deutsch_jozsa = QuantumComputer.Circuits.deutsch_jozsa(oracle)
+  measurement = QuantumComputer.Measurement(Array(1:(qubit_count-1)), Array(1:(qubit_count-1)))
+
+  register = QuantumComputer.Register(qubit_count, 1)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count - 1, 0)
+  superposition = QuantumComputer.Superposition(register.qubits)
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, deutsch_jozsa)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value == 0
+end
+
+@testset "deutsch-jozsa, balanced oracle" begin
+  qubit_count = 10
+
+  oracle_circuit = QuantumComputer.Circuits.cx_balanced_oracle(qubit_count)
+  oracle = QuantumComputer.circuit_convert_to_gate(oracle_circuit)
+  deutsch_jozsa = QuantumComputer.Circuits.deutsch_jozsa(oracle)
+  measurement = QuantumComputer.Measurement(Array(1:(qubit_count-1)), Array(1:(qubit_count-1)))
+
+  register = QuantumComputer.Register(qubit_count, 1)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count - 1, 0)
+  superposition = QuantumComputer.Superposition(register.qubits)
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, deutsch_jozsa)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value != 0
+end
