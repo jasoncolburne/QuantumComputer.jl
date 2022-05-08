@@ -479,3 +479,24 @@ end
 
   @test classical_register.value != 0
 end
+
+@testset "bernstein-vazirani" begin
+  qubit_count = 10
+  secret::Int64 = rand(0:(2^(qubit_count-1)-1))
+
+  oracle_circuit = QuantumComputer.Circuits.bitwise_product_oracle(secret, qubit_count)
+  oracle = QuantumComputer.circuit_convert_to_gate(oracle_circuit)
+  bernstein_vazirani = QuantumComputer.Circuits.bernstein_vazirani(oracle)
+  measurement = QuantumComputer.Measurement(Array(1:(qubit_count-1)), Array(1:(qubit_count-1)))
+
+  register = QuantumComputer.Register(qubit_count, 0)
+  classical_register = QuantumComputer.ClassicalRegister(qubit_count - 1, 0)
+  superposition = QuantumComputer.Superposition(register.qubits)
+
+  circuit = QuantumComputer.Circuit()
+  QuantumComputer.add_subcircuit_to_circuit!(circuit, bernstein_vazirani)
+  QuantumComputer.add_measurement_to_circuit!(circuit, measurement)
+  QuantumComputer.apply_circuit_to_superposition!(superposition, circuit, classical_register)
+
+  @test classical_register.value == secret
+end

@@ -377,7 +377,7 @@ function gate_control(
     qubit_count::Int64,
 )
     qubit_index in control_qubits && throw(
-        DomainError((control_qubit, qubit_index), "control and target qubits must differ"),
+        DomainError((control_qubits, qubit_index), "control and target qubits must differ"),
     )
 
     outer_size = 2^qubit_count
@@ -1446,6 +1446,38 @@ function deutsch_jozsa(oracle::QuantumComputer.Gate)
     QuantumComputer.add_gate_to_circuit!(circuit, prefix_h)
     QuantumComputer.add_gate_to_circuit!(circuit, oracle)
     QuantumComputer.add_gate_to_circuit!(circuit, postfix_h_extended)
+
+    circuit
+end
+
+function bitwise_product_oracle(secret::Int64, qubit_count::Int64)
+    circuit = QuantumComputer.Circuit()
+
+    for i in 1:(qubit_count - 1)
+        gate = ((secret & 2^(qubit_count - i - 1)) == 0) ? nothing : QuantumComputer.gate_cx(i, qubit_count, qubit_count)
+        gate != nothing && QuantumComputer.add_gate_to_circuit!(circuit, gate)
+    end
+
+    if length(circuit.components) == 0
+        identity = QuantumComputer.Gate(convert(Matrix{Complex{Float64}}, ((1.0 + 0.0im)I)(2^qubit_count)))
+        QuantumComputer.add_gate_to_circuit!(circuit, identity)
+    end
+
+    circuit
+end
+
+function bernstein_vazirani(oracle)
+    qubit_count::Int64 = oracle.superposed_qubits_required - 1
+
+    circuit::QuantumComputer.Circuit = QuantumComputer.Circuit()
+
+    gate_h::QuantumComputer.Gate = QuantumComputer.gate_expansion(QuantumComputer.gate_h, qubit_count)
+    gate_prefix::QuantumComputer.Gate = QuantumComputer.Gate(kron(gate_h.matrix, QuantumComputer.gate_z.matrix * QuantumComputer.gate_h.matrix))
+    gate_postfix::QuantumComputer.Gate = QuantumComputer.gate_extension(gate_h, 1, qubit_count + 1)
+
+    QuantumComputer.add_gate_to_circuit!(circuit, gate_prefix)
+    QuantumComputer.add_gate_to_circuit!(circuit, oracle)
+    QuantumComputer.add_gate_to_circuit!(circuit, gate_postfix)
 
     circuit
 end
